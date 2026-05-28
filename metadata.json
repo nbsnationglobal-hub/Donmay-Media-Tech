@@ -1,0 +1,8 @@
+{
+  "name": "Donmay Media & Technology",
+  "description": "Premium corporate hub for global media engineering, algorithmic systems, prediction engines, and next-gen visual execution.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
