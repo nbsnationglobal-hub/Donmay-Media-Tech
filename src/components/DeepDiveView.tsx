@@ -3,17 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { 
-  AppNode, 
-  UserSubscription 
-} from "../types";
+import { AppNode, UserSubscription } from "../types";
 import { 
   ArrowLeft, 
   Sparkles, 
   Cpu, 
-  Download, 
   Play, 
   RefreshCw, 
   CheckCircle, 
@@ -21,12 +17,23 @@ import {
   Flame, 
   Sliders, 
   Activity, 
-  Coins, 
   Tv, 
   Database,
   Mail,
   Lock,
-  ExternalLink
+  ExternalLink,
+  Film,
+  TrendingUp,
+  Briefcase,
+  Trophy,
+  ArrowRight,
+  Plus,
+  Trash2,
+  AlertTriangle,
+  Utensils,
+  MapPin,
+  ChefHat,
+  BookOpen
 } from "lucide-react";
 
 interface DeepDiveViewProps {
@@ -35,315 +42,187 @@ interface DeepDiveViewProps {
 }
 
 export default function DeepDiveView({ appNode, onBack }: DeepDiveViewProps) {
-  // Account Activation & Checkout simulation states
+  // Funnel execution state machine:
+  // "idle": standard visual simulator left pane & feature catalog/purchasing on the right
+  // "redirecting": handshaking with Selar payment checkout simulation Gateway
+  // "simulating_checkout": Selar Gateway responsive payment visual interface
+  // "activation_form": subscriber identity logging form
+  // "active_success": active portal success message containing the glowing Launch trigger link
   const [checkoutState, setCheckoutState] = useState<"idle" | "redirecting" | "simulating_checkout" | "activation_form" | "active_success">("idle");
   const [activationEmail, setActivationEmail] = useState("");
-  const [activationMt5, setActivationMt5] = useState("");
-  const [activationTeam, setActivationTeam] = useState("");
+  const [activationIdentifier, setActivationIdentifier] = useState("");
   const [savedUser, setSavedUser] = useState<UserSubscription | null>(null);
 
-  // Load from local storage on load
+  const isCulina = appNode.simulationType === "culina";
+
+  const culinaryDiscoveryItems = [
+    { name: "Nigerian Jollof Rice with Grilled Herbs", origin: "West Africa", prepTime: "45 Mins", difficulty: "Medium" },
+    { name: "South African Bobotie Cake", origin: "Southern Africa", prepTime: "60 Mins", difficulty: "High" },
+    { name: "Moroccan Spiced Lamb Tagine", origin: "North Africa", prepTime: "90 Mins", difficulty: "High" },
+    { name: "Ethiopian Injera Platter & Wot", origin: "East Africa", prepTime: "50 Mins", difficulty: "Medium" }
+  ];
+
+  const localVendors = [
+    { name: "Abiola Specialty Organic Hub (Lagos)", item: "Native Rice & Scent Leaves", distance: "0.8 km", status: "Active" },
+    { name: "Sahara Spice Route Importer", item: "Berbere & Tagine Spices", distance: "2.1 km", status: "Connected" },
+    { name: "The Green Canopy Farms", item: "Organic Herb bundles", distance: "4.3 km", status: "Active" }
+  ];
+
+  // Vora timeline tracker playhead simulation
+  const [timelinePlayhead, setTimelinePlayhead] = useState(0);
+  // QuantSync live pulsing chart simulated coordinate arrays
+  const [tickerPrice, setTickerPrice] = useState(1.0825);
+  const [candleData, setCandleData] = useState<number[]>([45, 60, 52, 70, 65, 80, 75, 90]);
+  // Media Hero interactive rows state
+  const [viralPatterns, setViralPatterns] = useState([
+    { pattern: "Hook Retention Phase A", status: "Secure", score: "94%" },
+    { pattern: "Veo Cinematic Transition Buffer", status: "Optimized", score: "91%" },
+    { pattern: "Social Algorithm Tag Matcher", status: "Secure", score: "99%" },
+    { pattern: "Imagen Thumbnail Visual Saturation", status: "Optimal", score: "96%" }
+  ]);
+  // MyBudgetHero budget ledger active bars
+  const [projectBudgets, setProjectBudgets] = useState([
+    { category: "Site Architecture Blueprinting", planned: 25000, activeSpend: 21200 },
+    { category: "Structural Engineering & Steel Foundations", planned: 95000, activeSpend: 82300 },
+    { category: "Full-Stack System Cloud Infrastructure Sync", planned: 15000, activeSpend: 15000 },
+    { category: "Operational Contractor Labor Retainers", planned: 60000, activeSpend: 42000 }
+  ]);
+  // Aura Match Matrices State
+  const [matchOdds, setMatchOdds] = useState([
+    { home: "Chelsea FC", away: "Real Madrid", algorithmValue: "HOME WON CO-ML", calculatedOdds: 1.95, strengthFactor: "88% / 84%" },
+    { home: "Manchester City", away: "Bayern Munich", algorithmValue: "OVER 2.5 REALISM", calculatedOdds: 1.62, strengthFactor: "92% / 89%" },
+    { home: "Paris SG", away: "Arsenal", algorithmValue: "DRAW PROB MATRIX", calculatedOdds: 3.40, strengthFactor: "85% / 87%" }
+  ]);
+  const [customStake, setCustomStake] = useState("100");
+
+  // Culina Simulation State
+  const [activeRecipe, setActiveRecipe] = useState("Nigerian Jollof Rice with Grilled Herbs");
+  const [cookingProgress, setCookingProgress] = useState(65);
+  const [selectedProfileMode, setSelectedProfileMode] = useState<"Guided" | "Baking" | "Buffet">("Guided");
+
+  // Culina cooking timer oscillation loop
+  useEffect(() => {
+    if (appNode.simulationType !== "culina") return;
+    const interval = setInterval(() => {
+      setCookingProgress(prev => {
+        if (prev >= 100) return 10;
+        return prev + 1;
+      });
+    }, 1200);
+    return () => clearInterval(interval);
+  }, [appNode.simulationType]);
+
+  // Load persistent record from LocalStorage on mount
   useEffect(() => {
     const key = `donmay_sub_${appNode.id}`;
     const stored = localStorage.getItem(key);
     if (stored) {
       try {
-        setSavedUser(JSON.parse(stored));
-        setCheckoutState("active_success");
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.email) {
+          setSavedUser(parsed);
+          setActivationEmail(parsed.email);
+          setActivationIdentifier(parsed.mt5Id || parsed.teamName || "");
+          setCheckoutState("active_success");
+        }
       } catch (e) {
-        // ignore
+        console.error("Corrupted local storage parsed schema error", e);
       }
     }
   }, [appNode.id]);
 
-  // General Simulators State
-  // 1. Forex Tick Ticker
-  const [forexTicks, setForexTicks] = useState<{ pair: string; bid: number; ask: number; dir: "up" | "down" }[]>([
-    { pair: "EURUSD", bid: 1.08542, ask: 1.08553, dir: "up" },
-    { pair: "GBPUSD", bid: 1.27218, ask: 1.27231, dir: "down" },
-    { pair: "USDJPY", bid: 156.425, ask: 156.438, dir: "up" },
-    { pair: "AUDUSD", bid: 0.66245, ask: 0.66258, dir: "up" },
-    { pair: "BTCUSD", bid: 68420.50, ask: 68422.30, dir: "down" }
-  ]);
-  const [eaLogs, setEaLogs] = useState<string[]>([
-    "[SYSTEM] EA Forex Core initialized successfully on MT5 Terminal.",
-    "[STATUS] Port mapping tunnel online."
-  ]);
-
-  // 2. Football Predictor State
-  const [footballMatch, setFootballMatch] = useState({ home: "Chelsea", away: "Real Madrid" });
-  const [strengths, setStrengths] = useState({ home: 82, away: 85 });
-  const [predictorResult, setPredictorResult] = useState<{
-    homeWin: number;
-    draw: number;
-    awayWin: number;
-    over25: number;
-    under25: number;
-    ticketValue: string;
-  } | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [betSlip, setBetSlip] = useState<{ match: string; pick: string; odd: number }[]>([]);
-  const [betStake, setBetStake] = useState("100");
-
-  // 3. Audio Synthesizer State
-  const [synthFeedback, setSynthFeedback] = useState("Oscillator idle. Click a wave form below to play Synthesizer.");
-  const [activeSynthWave, setActiveSynthWave] = useState<"sine" | "sawtooth" | "triangle" | "square" | null>(null);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-
-  // 4. Cryptographic Sentinel State
-  const [securityLogs, setSecurityLogs] = useState<string[]>([]);
-  const [activeKey, setActiveKey] = useState("6A4F98E9B1203FD3AC0145E9F88A23BC12D90E002");
-  const [isShufflingKeys, setIsShufflingKeys] = useState(false);
-
-  // 5. Bento CDN State
-  const [cdnStatus, setCdnStatus] = useState<"idle" | "buffering" | "optimized">("idle");
-  const [cdnSpeed, setCdnSpeed] = useState(420); // mbps
-  const [activeChunkProgress, setActiveChunkProgress] = useState<number[]>([100, 100, 80, 45, 0, 0, 0, 0]);
-
-  // --- FX Simulation Logs Trigger ---
+  // Vora Studio timeline loop
   useEffect(() => {
-    if (appNode.simulationType !== "forex") return;
+    if (appNode.simulationType !== "vora") return;
     const interval = setInterval(() => {
-      // Fluctuate rates
-      setForexTicks(prev => prev.map(t => {
-        const factor = t.pair.includes("JPY") ? 0.05 : t.pair.includes("BTC") ? 15.2 : 0.00018;
-        const change = (Math.random() - 0.5) * factor;
-        const newBid = parseFloat((t.bid + change).toFixed(t.pair.includes("JPY") ? 3 : t.pair.includes("BTC") ? 2 : 5));
-        const newAsk = parseFloat((newBid + Math.random() * (factor / 2)).toFixed(t.pair.includes("JPY") ? 3 : t.pair.includes("BTC") ? 2 : 5));
-        return {
-          ...t,
-          bid: newBid,
-          ask: newAsk,
-          dir: change > 0 ? "up" : "down"
-        };
-      }));
-
-      // Append EA Log
-      const events = [
-        `[TICK] Market feed updated sync. Ticks captured: ${Math.floor(Math.random() * 8) + 1}`,
-        `[DECISION] Calculating probability distribution vector on MT5...`,
-        `[CSV EXPORT] Generated tick packet write line: ${new Date().toISOString().substring(11, 19)},EURUSD,${(1.08 + Math.random() * 0.01).toFixed(5)}`,
-        `[INTELLIGENCE] Risk score checks calculated: 0.04% slippage threshold. Passed.`,
-        `[ACCOUNT] Trading Capital protection guard verified active.`
-      ];
-      const randomEvent = events[Math.floor(Math.random() * events.length)];
-      setEaLogs(prev => [randomEvent, ...prev.slice(0, 15)]);
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [appNode.simulationType]);
-
-  // --- Crypto Sentinel Log Trigger ---
-  useEffect(() => {
-    if (appNode.simulationType !== "security") return;
-    const ips = ["185.42.103.44", "102.33.20.198", "45.112.5.122", "190.22.90.1", "88.243.14.9"];
-    const actions = [
-      "Access block handshake initiated",
-      "Dynamic token credential validated successfully",
-      "gRPC tunnel channel established",
-      "Encrypted payload packet decryption completed securely",
-      "Rate limits analyzed. Threat metrics zero-level status verified"
-    ];
-
-    const interval = setInterval(() => {
-      const log = `[${new Date().toISOString().slice(11, 19)}] [PROXY] ${ips[Math.floor(Math.random() * ips.length)]} - ${actions[Math.floor(Math.random() * actions.length)]}`;
-      setSecurityLogs(prev => [log, ...prev.slice(0, 10)]);
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [appNode.simulationType]);
-
-  // --- CDN Stream Buffering Simulation ---
-  useEffect(() => {
-    if (appNode.simulationType !== "cloud" || cdnStatus !== "buffering") return;
-    const interval = setInterval(() => {
-      setActiveChunkProgress(prev => {
-        const next = [...prev];
-        const indexToUpdate = next.findIndex(val => val < 100);
-        if (indexToUpdate !== -1) {
-          next[indexToUpdate] = Math.min(next[indexToUpdate] + 20, 100);
-          return next;
-        } else {
-          setCdnStatus("optimized");
-          setCdnSpeed(1450); // Speed up dramatically after cached optimize
-          return next;
-        }
+      setTimelinePlayhead(prev => {
+        if (prev >= 100) return 0;
+        return prev + 2.5;
       });
-    }, 800);
-
+    }, 150);
     return () => clearInterval(interval);
-  }, [appNode.simulationType, cdnStatus]);
+  }, [appNode.simulationType]);
 
-  // --- CSV Export Logic for Forex ---
-  const handleDownloadCsv = () => {
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + "Timestamp,Asset,BidValue,AskValue,VolumeTraded,ExecutionLatencyMs\n"
-      + forexTicks.map(t => `${new Date().toISOString()},${t.pair},${t.bid},${t.ask},${(Math.random()*12+1).toFixed(2)},${(Math.random()*15+2).toFixed(2)}`).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `donmay_live_ticks_${appNode.id}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setEaLogs(prev => [`[CSV SYSTEM] User successfully extracted live ticks database file.`, ...prev]);
-  };
+  // QuantSync live price oscillator ticker loop
+  useEffect(() => {
+    if (appNode.simulationType !== "quantsync") return;
+    const interval = setInterval(() => {
+      setTickerPrice(prev => {
+        const movement = (Math.random() - 0.5) * 0.00040;
+        return parseFloat((prev + movement).toFixed(5));
+      });
+      setCandleData(prev => {
+        const next = [...prev.slice(1)];
+        next.push(Math.floor(Math.random() * 60) + 35);
+        return next;
+      });
+    }, 1200);
+    return () => clearInterval(interval);
+  }, [appNode.simulationType]);
 
-  // --- Football Predictor Runner ---
-  const handleRunFootballAnalysis = () => {
-    setIsAnalyzing(true);
-    setPredictorResult(null);
+  // 1. Trigger Payment gateway redirections handler simulation
+  const handleInitializeSubscription = () => {
+    setCheckoutState("redirecting");
     setTimeout(() => {
-      // Simple formula based on dynamic parameters
-      const totalStrength = strengths.home + strengths.away;
-      const homeWinProb = Math.round((strengths.home / totalStrength) * 100 + (Math.random() * 8 - 4));
-      const drawProb = Math.round(20 + (Math.random() * 6 - 3));
-      const awayWinProb = 100 - homeWinProb - drawProb;
-
-      const overProb = Math.round(40 + (strengths.home * strengths.away) / 180 + (Math.random() * 10 - 5));
-      const underProb = 100 - overProb;
-
-      // Select recommended ticket option
-      let ticketOption = "Home Win (1X)";
-      if (homeWinProb < awayWinProb) ticketOption = "Away Win (2X)";
-      if (overProb > 65) ticketOption = "Over 2.5 Goals (Multi-Combo)";
-
-      setPredictorResult({
-        homeWin: homeWinProb,
-        draw: drawProb,
-        awayWin: awayWinProb,
-        over25: overProb,
-        under25: underProb,
-        ticketValue: ticketOption
-      });
-      setIsAnalyzing(false);
+      setCheckoutState("simulating_checkout");
     }, 1500);
   };
 
-  // Football Accumulator Slip Adder
-  const handleAddToBetSlip = (pick: string, odd: number) => {
-    const item = {
-      match: `${footballMatch.home} vs ${footballMatch.away}`,
-      pick,
-      odd
-    };
-    setBetSlip(prev => [...prev, item]);
-  };
-
-  // --- Web Audio Synthesizer Player ---
-  const handlePlaySynthTone = (type: "sine" | "sawtooth" | "triangle" | "square") => {
-    try {
-      setActiveSynthWave(type);
-      
-      // Initialize AudioContext if not created
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      
-      const ctx = audioCtxRef.current;
-      if (ctx.state === "suspended") {
-        ctx.resume();
-      }
-
-      // Determine pitch base on waveforms
-      const freqs = { sine: 349.23, sawtooth: 130.81, triangle: 261.63, square: 196.00 };
-      const frequency = freqs[type];
-
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      osc.type = type;
-      osc.frequency.value = frequency;
-
-      // Make a beautiful high tech envelopes
-      gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.05);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
-
-      osc.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 1.3);
-
-      setSynthFeedback(`Synth Audio Active: Waveform: ${type.toUpperCase()} @ ${frequency} Hz synthesized via standard Web Audio pipelines successfully.`);
-    } catch (err) {
-      setSynthFeedback("Browser Audio Engine requires interaction. Click Node Synthesizers below to trigger dynamic audio loop.");
-    }
-  };
-
-  // --- Shuffling credentials for sentinel security ---
-  const handleShuffleCredentials = () => {
-    setIsShufflingKeys(true);
-    setTimeout(() => {
-      const hexChars = "0123456789ABCDEF";
-      let key = "";
-      for (let i = 0; i < 40; i++) {
-        key += hexChars[Math.floor(Math.random() * 16)];
-      }
-      setActiveKey(key);
-      setSecurityLogs(prev => [
-        `[${new Date().toISOString().slice(11, 19)}] [SENTINEL] Master authorization credential shuffled successfully. New SHA256 Signature registered.`,
-        ...prev
-      ]);
-      setIsShufflingKeys(false);
-    }, 1200);
-  };
-
-  // --- CDN Optimizer trigger ---
-  const handleTriggerCdnBuffering = () => {
-    setCdnStatus("buffering");
-    setCdnSpeed(78);
-    setActiveChunkProgress([100, 100, 0, 0, 0, 0, 0, 0]);
-  };
-
-  // --- Premium Subscription and simulated Selar Integration ---
-  const handleInitializeSubscription = () => {
-    setCheckoutState("redirecting");
-    
-    // Step 1: Simulate redirection to external checkout domain (Selar URL)
-    setTimeout(() => {
-      setCheckoutState("simulating_checkout");
-    }, 1800);
-  };
-
+  // 2. Trigger secure successful Selar validation response
   const handleSimulateSuccessfulPayment = () => {
-    // Stage 2: payment success, redirect back to application custom built-in account activation form
     setCheckoutState("activation_form");
   };
 
+  // 3. Save subscriber activation credentials record
   const handleSaveActivationCredentials = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activationEmail) return;
 
-    // Save to local state and localStorage for persistence
-    const subscriptionRecord: UserSubscription = {
+    const record: UserSubscription = {
       email: activationEmail,
-      mt5Id: appNode.simulationType === "forex" ? activationMt5 : undefined,
-      teamName: appNode.simulationType === "football" ? activationTeam : undefined,
       appName: appNode.title,
-      subscribedAt: new Date().toLocaleDateString(),
-      status: "active"
+      subscribedAt: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString(),
+      status: "active",
+      mt5Id: appNode.simulationType === "quantsync" ? activationIdentifier : undefined,
+      teamName: appNode.simulationType !== "quantsync" ? activationIdentifier : undefined
     };
 
-    localStorage.setItem(`donmay_sub_${appNode.id}`, JSON.stringify(subscriptionRecord));
-    setSavedUser(subscriptionRecord);
+    localStorage.setItem(`donmay_sub_${appNode.id}`, JSON.stringify(record));
+    setSavedUser(record);
     setCheckoutState("active_success");
   };
 
-  const handleDeleteSubscription = () => {
+  const handleDeactivateSubscription = () => {
     localStorage.removeItem(`donmay_sub_${appNode.id}`);
     setSavedUser(null);
     setCheckoutState("idle");
     setActivationEmail("");
-    setActivationMt5("");
-    setActivationTeam("");
+    setActivationIdentifier("");
+  };
+
+  const getOptionalLabel = () => {
+    switch (appNode.simulationType) {
+      case "quantsync":
+        return "MetaTrader 5 (MT5) ID";
+      case "budget":
+        return "Bento Construction Project Name";
+      case "vora":
+        return "Primary Cinema Studio Studio Handle";
+      case "media_hero":
+        return "Social YouTube or Instagram Handle";
+      case "aura":
+        return "Aura Football Bookmaker Affiliation";
+      case "culina":
+        return "Preferred Culinary Profile Mode (Guided, Baking, Buffet)";
+      default:
+        return "Optional Identifier";
+    }
   };
 
   return (
-    <section className="min-h-screen py-24 px-6 md:px-12 bg-[#040714] relative z-10 select-none">
+    <section className="min-h-screen py-24 px-6 md:px-12 bg-[#040714] relative z-10 select-none text-white transition-all">
       <div className="absolute inset-0 digital-grid opacity-60 pointer-events-none" />
-      
+
       <div className="max-w-7xl mx-auto">
         {/* Back navigation button */}
         <button
@@ -352,769 +231,800 @@ export default function DeepDiveView({ appNode, onBack }: DeepDiveViewProps) {
           id="btn-back-to-grid"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span>RETURN TO APP CLUSTER</span>
+          <span>RETURN TO APP DIRECTORY</span>
         </button>
 
-        {/* Header summary info for deep dive app */}
-        <div className="mb-14 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start border-b border-[#1C64F2]/20 pb-10">
+        {/* Header summary info */}
+        <div className="mb-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start border-b border-[#1C64F2]/20 pb-10">
           <div className="lg:col-span-8">
-            <div className="flex items-center gap-3 text-[#00F0FF] font-mono text-xs tracking-wider mb-3">
-              <Cpu className="w-4 h-4 animate-spin-slow" />
-              <span>{appNode.subtitle} // ACTIVE CLUSTER MODE</span>
+            <div className="flex items-center gap-2 text-[#00F0FF] font-mono text-xs tracking-wider mb-3">
+              <Cpu className="w-4 h-4 animate-spin-slow text-[#00F0FF]" />
+              <span>{appNode.subtitle} // ACTIVE FUNNEL PROTOCOL</span>
             </div>
-            <h2 className="font-display font-bold text-3xl md:text-5xl text-white tracking-widest uppercase">
+            <h2 className="font-display font-black text-3xl md:text-5xl text-white tracking-widest uppercase">
               {appNode.title}
             </h2>
-            <p className="font-sans text-[#A0AEC0] mt-6 text-sm md:text-base leading-relaxed max-w-3xl uppercase">
+            <p className="font-sans text-[#A0AEC0] mt-5 text-sm md:text-base leading-relaxed max-w-3xl uppercase">
               {appNode.longDescription}
             </p>
-          </div>
-          <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 w-full">
-            <div className="p-4 rounded border border-[#1C64F2]/20 bg-[#080B1C]/40 flex flex-col gap-1 w-full">
-              <span className="font-mono text-[9px] text-[#A0AEC0] tracking-widest uppercase">CORE LICENSE STATUS</span>
-              <span className="font-display text-xs text-white uppercase font-bold flex items-center gap-2 mt-1">
-                <span className="w-2 h-2 rounded-full bg-[#00F0FF]" />
-                GLOBAL PRODUCTION READY
-              </span>
+
+            {/* Display Micro-Tags on Deep Dive */}
+            <div className="flex flex-wrap gap-2.5 mt-4">
+              {appNode.microTags.map((tag, tIdx) => (
+                <span 
+                  key={tIdx} 
+                  className="text-[10px] font-mono font-bold px-3 py-1 bg-[#1C64F2]/10 border border-[#1C64F2]/30 text-[#00F0FF] tracking-wider rounded uppercase"
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
-            <div className="p-4 rounded border border-[#1C64F2]/20 bg-[#080B1C]/40 flex flex-col gap-1 w-full">
-              <span className="font-mono text-[9px] text-[#A0AEC0] tracking-widest uppercase">INTEGRATED PIPELINE</span>
-              <span className="font-display text-xs text-[#00F0FF] uppercase font-bold mt-1">
-                SECURED PORT TERMINAL
+          </div>
+          <div className="lg:col-span-4 flex flex-col gap-3 w-full self-end">
+            <div className="p-4 rounded border border-[#1C64F2]/20 bg-[#080B1C]/50 flex flex-col gap-1 w-full relative">
+              <span className="font-mono text-[9px] text-[#A0AEC0] tracking-widest uppercase">CORE LICENSE ACCESS TIER</span>
+              <span className="font-display text-xs text-white uppercase font-black tracking-widest flex items-center gap-2 mt-1">
+                <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse" />
+                PREMIUM ALL-INCLUSIVE SECURE FEED
               </span>
             </div>
           </div>
         </div>
 
-        {/* Core Double Column: Visual Hook Side vs Technical Specs */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch" id="app-deep-dive-grid">
-          
-          {/* VISUAL HOOK SIDE (Interactive high-fidelity simulation controls) */}
-          <div className="lg:col-span-7 flex flex-col" id="col-visual-hook">
-            <div className="flex items-center justify-between px-6 py-4 rounded-t-lg border-t border-x border-[#1C64F2]/30 bg-[#080B1C]/90">
-              <div className="flex items-center gap-2">
-                <Activity className="w-4.5 h-4.5 text-[#00F0FF]" />
-                <span className="font-display text-xs text-white font-bold tracking-widest uppercase">
-                  SIMULATED HIGH-TECH RUNTIME GRAPH
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-pulse" />
-                <span className="font-mono text-[8.5px] text-[#A0AEC0] tracking-widest uppercase">
-                  STREAMING REAL-TIME
-                </span>
-              </div>
-            </div>
-
-            {/* Canvas viewport for specialized simulators */}
-            <div className="flex-1 min-h-[460px] rounded-b-lg border border-[#1C64F2]/30 bg-[#040714]/95 p-6 relative flex flex-col justify-between overflow-hidden">
-              
-              {/* Foreground Grid Mesh layer */}
-              <div className="absolute inset-0 digital-grid opacity-35 pointer-events-none" />
-
-              {/* 1. FOREX MARKET INTELLIGENCE SIMULATOR */}
-              {appNode.simulationType === "forex" && (
-                <div className="relative z-10 flex flex-col gap-6 h-full justify-between" id="simulator-forex">
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                    {forexTicks.map((tick, idx) => (
-                      <div 
-                        key={idx} 
-                        className="p-3 rounded border border-[#122A5E]/40 bg-[#080B1C]/85 flex flex-col justify-between transition-colors hover:border-[#1C64F2]/50"
-                      >
-                        <span className="font-mono text-[10px] text-[#A0AEC0]">{tick.pair}</span>
-                        <div className="flex flex-col mt-2">
-                          <span className={`font-mono text-xs font-bold ${tick.dir === "up" ? "text-emerald-400" : "text-rose-400"}`}>
-                            {tick.bid.toFixed(tick.pair.includes("JPY") ? 3 : tick.pair.includes("BTC") ? 1 : 5)}
-                          </span>
-                          <span className="font-mono text-[9px] text-[#A0AEC0]/60 mt-0.5">
-                            Ask: {tick.ask.toFixed(tick.pair.includes("JPY") ? 3 : tick.pair.includes("BTC") ? 1 : 5)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Terminal Log Console */}
-                  <div className="flex-1 my-4 bg-black/85 rounded p-4 font-mono text-[10px] text-emerald-400 overflow-y-auto max-h-[220px] scrollbar-thin border border-[#1C64F2]/10">
-                    <div className="flex items-center gap-2 text-[#00F0FF] border-b border-[#1C64F2]/20 pb-2 mb-2 font-bold uppercase tracking-wider">
-                      <span>MT5 EXPERT ADVISOR LIVE CONSOLE LOGS</span>
-                      <span className="animate-pulse">_</span>
-                    </div>
-                    {eaLogs.map((log, idx) => (
-                      <div key={idx} className="mb-1 leading-normal">
-                        <span className="text-[#A0AEC0] mr-2">[{new Date().toLocaleDateString()}]</span>
-                        {log}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Simulator action links */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#1C64F2]/20 pt-4">
-                    <span className="font-mono text-[9.5px] text-[#A0AEC0] tracking-wide uppercase">
-                      CSV PACKETS RECOGNITION FLOW RATIO: 100% SECURE
+        {/* Main Content Area structured as requested: Left/Right Split Canvas, except when payments are ongoing */}
+        <AnimatePresence mode="wait">
+          {checkoutState === "idle" || checkoutState === "active_success" ? (
+            <motion.div 
+              key="split-canvas"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch"
+              id="subscription-funnel-grid"
+            >
+              {/* =============== LEFT PANE: VISUAL SIMULATION ZONE =============== */}
+              <div className="lg:col-span-7 flex flex-col" id="visual-simulation-zone">
+                <div className={`flex items-center justify-between px-6 py-4 rounded-t-lg border-t border-x bg-[#080B1C] ${isCulina ? "border-[#FF7A18]/30" : "border-[#1C64F2]/30"}`}>
+                  <div className="flex items-center gap-2">
+                    <Activity className={`w-4 h-4 ${isCulina ? "text-[#FF8A35] animate-pulse" : "text-[#00F0FF]"}`} />
+                    <span className={`text-xs text-white font-bold tracking-widest uppercase ${isCulina ? "font-sora text-[#FFB347]" : "font-display"}`}>
+                      {isCulina ? "CULINA KITCHEN TERMINAL WORKSPACE" : "PROPRIETARY RUNTIME GRAPH SIMULATOR"}
                     </span>
-                    <button
-                      onClick={handleDownloadCsv}
-                      className="px-4 py-2 bg-[#080B1C] border border-[#1C64F2] text-white hover:text-[#00F0FF] hover:border-[#00F0FF] rounded font-display text-[10px] tracking-widest uppercase cursor-pointer flex items-center gap-2 transition-all hover:shadow-[0_0_15px_rgba(0,240,255,0.15)]"
-                    >
-                      <Download className="w-3.5 h-3.5 text-[#00F0FF]" />
-                      <span>DOWNLOAD LIVE CSV REPORT</span>
-                    </button>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`w-1.5 h-1.5 rounded-full animate-ping ${isCulina ? "bg-[#FF7A18]" : "bg-[#00F0FF]"}`} />
+                    <span className="font-mono text-[8.5px] text-[#A0AEC0] tracking-widest uppercase">
+                      {isCulina ? "CINEMATIC EMULATION" : "ONLINE EMULATION"}
+                    </span>
                   </div>
                 </div>
-              )}
 
-              {/* 2. FOOTBALL ODDS PREDICTION SIMULATOR */}
-              {appNode.simulationType === "football" && (
-                <div className="relative z-10 flex flex-col justify-between h-full gap-5" id="simulator-football">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Controls */}
-                    <div className="p-4 bg-[#080B1C]/80 rounded border border-[#1C64F2]/20 flex flex-col gap-4">
-                      <span className="font-display text-[10px] tracking-widest text-[#00F0FF] uppercase border-b border-[#1C64F2]/15 pb-2">
-                        POISSON MATRIX CONFIG
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 flex flex-col gap-1">
-                          <label className="font-mono text-[9px] text-[#A0AEC0] uppercase">Home Team</label>
-                          <input 
-                            type="text" 
-                            className="bg-[#040714] border border-[#1C64F2]/30 rounded text-xs px-2.5 py-1.5 font-sans uppercase font-bold text-white outline-none focus:border-[#00F0FF]"
-                            value={footballMatch.home}
-                            onChange={(e) => setFootballMatch(prev => ({ ...prev, home: e.target.value }))}
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col gap-1">
-                          <label className="font-mono text-[9px] text-[#A0AEC0] uppercase">Away Team</label>
-                          <input 
-                            type="text" 
-                            className="bg-[#040714] border border-[#1C64F2]/30 rounded text-xs px-2.5 py-1.5 font-sans uppercase font-bold text-white outline-none focus:border-[#00F0FF]"
-                            value={footballMatch.away}
-                            onChange={(e) => setFootballMatch(prev => ({ ...prev, away: e.target.value }))}
-                          />
-                        </div>
-                      </div>
+                <div className={`flex-1 min-h-[460px] rounded-b-lg border p-6 relative flex flex-col justify-between overflow-hidden ${isCulina ? "border-[#FF7A18]/30 bg-[#0F0F0F]" : "border-[#1C64F2]/30 bg-[#040714]"}`}>
+                  <div className="absolute inset-0 digital-grid opacity-35 pointer-events-none" />
 
-                      {/* Power sliders */}
-                      <div className="flex flex-col gap-3">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex justify-between font-mono text-[9px] text-[#A0AEC0]">
-                            <span>HOME STRENGTH INDEX ({strengths.home})</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="30"
-                            max="100"
-                            value={strengths.home}
-                            onChange={(e) => setStrengths(prev => ({ ...prev, home: parseInt(e.target.value) }))}
-                            className="accent-[#1C64F2] cursor-pointer"
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex justify-between font-mono text-[9px] text-[#A0AEC0]">
-                            <span>WAY STRENGTH INDEX ({strengths.away})</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="30"
-                            max="100"
-                            value={strengths.away}
-                            onChange={(e) => setStrengths(prev => ({ ...prev, away: parseInt(e.target.value) }))}
-                            className="accent-[#00F0FF] cursor-pointer"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={handleRunFootballAnalysis}
-                        disabled={isAnalyzing}
-                        className="w-full py-2 bg-gradient-to-r from-[#1C64F2] to-[#00F0FF] disabled:from-slate-800 disabled:to-slate-700 font-display text-[11px] font-bold text-[#040714] tracking-widest uppercase rounded cursor-pointer transition-all hover:shadow-[0_0_15px_rgba(0,240,255,0.3)] mt-2 flex items-center justify-center gap-2"
-                      >
-                        {isAnalyzing ? (
-                          <>
-                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            <span>COMPUTING IN PROGRESS...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Sliders className="w-3.5 h-3.5" />
-                            <span>RUN PROBABILITY CORE</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Results Simulation Display */}
-                    <div className="p-4 bg-[#080B1C]/80 rounded border border-[#1C64F2]/20 flex flex-col gap-3 justify-between">
-                      <span className="font-display text-[10px] tracking-widest text-[#00F0FF] uppercase border-b border-[#1C64F2]/15 pb-2">
-                        POISSON DISTRIBUTION OUTCOME
-                      </span>
-
-                      {!predictorResult && !isAnalyzing && (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-                          <Play className="w-8 h-8 text-[#1C64F2]/40 mb-2 animate-pulse" />
-                          <p className="font-mono text-[10px] text-[#A0AEC0] uppercase">
-                            Set team metrics left &amp; execute algorithm run.
-                          </p>
-                        </div>
-                      )}
-
-                      {isAnalyzing && (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-                          <RefreshCw className="w-8 h-8 text-[#00F0FF] mb-2 animate-spin" />
-                          <p className="font-mono text-[10px] text-[#00F0FF] uppercase tracking-widest">
-                            SIMULATING POISSON DENSITY MATRICES
-                          </p>
-                        </div>
-                      )}
-
-                      {predictorResult && !isAnalyzing && (
-                        <div className="flex-grow flex flex-col gap-3">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex justify-between font-mono text-[9px] text-[#A0AEC0] uppercase">
-                              <span>{footballMatch.home} Win Prob</span>
-                              <span>{predictorResult.homeWin}%</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-[#040714] rounded overflow-hidden">
-                              <div className="h-full bg-[#1C64F2]" style={{ width: `${predictorResult.homeWin}%` }} />
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col gap-1">
-                            <div className="flex justify-between font-mono text-[9px] text-[#A0AEC0] uppercase">
-                              <span>Draw Match Prob</span>
-                              <span>{predictorResult.draw}%</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-[#040714] rounded overflow-hidden">
-                              <div className="h-full bg-[#A0AEC0]" style={{ width: `${predictorResult.draw}%` }} />
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col gap-1">
-                            <div className="flex justify-between font-mono text-[9px] text-[#A0AEC0] uppercase">
-                              <span>{footballMatch.away} Win Prob</span>
-                              <span>{predictorResult.awayWin}%</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-[#040714] rounded overflow-hidden">
-                              <div className="h-full bg-[#00F0FF]" style={{ width: `${predictorResult.awayWin}%` }} />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-[#1C64F2]/10">
-                            <div className="bg-[#040714] p-2 rounded border border-[#1C64F2]/10 text-center cursor-pointer hover:border-[#1C64F2]" onClick={() => handleAddToBetSlip(`Over 2.5 Goals`, 1.82)}>
-                              <p className="font-mono text-[8px] text-[#A0AEC0] uppercase">Over 2.5 Odd</p>
-                              <p className="font-mono text-xs text-white font-bold mt-1">1.82 ({(predictorResult.over25)}%)</p>
-                            </div>
-                            <div className="bg-[#040714] p-2 rounded border border-[#1C64F2]/10 text-center cursor-pointer hover:border-[#00F0FF]" onClick={() => handleAddToBetSlip(`${footballMatch.home} ML`, 2.15)}>
-                              <p className="font-mono text-[8px] text-[#A0AEC0] uppercase">Home Odd</p>
-                              <p className="font-mono text-xs text-white font-bold mt-1">2.15 ({(predictorResult.homeWin)}%)</p>
-                            </div>
+                  {/* 1. VORA STUDIO SIMULATOR (Timeline Frame Animation) */}
+                  {appNode.simulationType === "vora" && (
+                    <div className="relative z-10 flex flex-col justify-between h-full gap-6" id="sim-vora">
+                      <div className="flex justify-between items-center bg-[#080B1C]/90 p-4 border border-[#1C64F2]/25 rounded">
+                        <div className="flex items-center gap-3">
+                          <Film className="w-5 h-5 text-purple-400 animate-pulse" />
+                          <div>
+                            <p className="font-display text-xs text-white font-bold tracking-widest uppercase">
+                              VORA VIDEO CHOREOGRAPHY FEED
+                            </p>
+                            <p className="font-mono text-[9px] text-[#A0AEC0] tracking-wide mt-0.5">
+                              GEMINI VISION // FRAMING RENDERING CAPTURE MATRIX
+                            </p>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Interactive Ticket Accumulator Slip */}
-                  <div className="min-h-[140px] bg-black/60 rounded p-4 border border-[#1C64F2]/15 flex flex-col justify-between">
-                    <div className="flex justify-between items-center border-b border-[#1C64F2]/15 pb-2 mb-2 font-mono text-[10px]">
-                      <span className="font-bold text-[#00F0FF] uppercase">CUSTOM INTERACTIVE TICKET SLIP</span>
-                      <span className="text-[#A0AEC0]">{betSlip.length} LEGS REGISTERED</span>
-                    </div>
-
-                    {betSlip.length === 0 ? (
-                      <p className="font-mono text-[9.5px] text-[#A0AEC0]/60 text-center my-4 uppercase">
-                        Click odds tags in recommendations to compile interactive ticket
-                      </p>
-                    ) : (
-                      <div className="flex flex-col gap-2 max-h-[100px] overflow-y-auto pr-1">
-                        {betSlip.map((item, id) => (
-                          <div key={id} className="flex justify-between items-center font-mono text-[9.5px] bg-[#080B1C]/70 p-2 rounded border border-[#1C64F2]/10">
-                            <span className="text-white uppercase truncate">{item.match} // {item.pick}</span>
-                            <div className="flex items-center gap-3">
-                              <span className="text-[#00F0FF] font-bold">@{item.odd.toFixed(2)}</span>
-                              <button 
-                                onClick={() => setBetSlip(prev => prev.filter((_, idx) => idx !== id))}
-                                className="text-red-400 hover:text-red-300 font-bold"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="flex flex-col sm:flex-row gap-3 pt-3 mt-3 border-t border-[#1C64F2]/15 items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[9.5px] text-[#A0AEC0] uppercase">STAKE:</span>
-                        <input
-                          type="number"
-                          value={betStake}
-                          onChange={(e) => setBetStake(e.target.value)}
-                          className="bg-[#040714] border border-[#1C64F2]/35 focus:border-[#00F0FF] outline-none text-white font-mono text-xs w-20 px-2 py-1 rounded"
-                        />
-                        <span className="font-mono text-[10px] text-white">USD</span>
-                      </div>
-                      <div className="font-display text-xs text-white uppercase text-right">
-                        <span>EST. PAYOUT: </span>
-                        <span className="text-[#00F0FF] font-bold">
-                          ${(
-                            parseFloat(betStake || "0") * 
-                            (betSlip.reduce((acc, current) => acc * current.odd, 1))
-                          ).toFixed(2)} USD
+                        <span className="font-mono text-[10px] text-purple-400 tracking-wider">
+                          FPS: 60 // 4K CINEMATIC
                         </span>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {/* 3. QUANTUM SOUND SYNTHESIS SIMULATOR */}
-              {appNode.simulationType === "media" && (
-                <div className="relative z-10 flex flex-col justify-between h-full gap-5 animate-fadeIn" id="simulator-sound">
-                  <div className="p-4 rounded border border-[#1C64F2]/15 bg-[#080B1C]/60">
-                    <p className="font-mono text-[11px] text-[#A0AEC0] mb-3 leading-relaxed uppercase">
-                      This module interfaces directly with standard browser **Web Audio Synthesis API Engines** on your local machine to render pure auditory celebration cues. Click sound boards:
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-                      {[
-                        { label: "Soft Ambient Wave", type: "sine" as const, color: "text-[#00F0FF] hover:bg-[#00F0FF]/10 hover:border-[#00F0FF]" },
-                        { label: "Deep Saw Synth", type: "sawtooth" as const, color: "text-amber-400 hover:bg-amber-400/10 hover:border-amber-400" },
-                        { label: "Retro Square Wave", type: "square" as const, color: "text-emerald-400 hover:bg-emerald-400/10 hover:border-emerald-400" },
-                        { label: "Purity Triangle", type: "triangle" as const, color: "text-indigo-400 hover:bg-indigo-400/10 hover:border-indigo-400" }
-                      ].map((item, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => handlePlaySynthTone(item.type)}
-                          className={`p-3 rounded border border-[#1C64F2]/25 bg-[#040714] text-center font-display text-[10px] tracking-wider uppercase font-bold transition-all cursor-pointer ${item.color} ${activeSynthWave === item.type ? "border-solid bg-white/5 shadow-[0_0_12px_rgba(28,100,242,0.3)]" : ""}`}
-                        >
-                          <Play className="w-3.5 h-3.5 mx-auto mb-2" />
-                          <span>{item.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                      {/* Timeline graphic preview */}
+                      <div className="flex-1 my-4 bg-black/80 rounded border border-[#1C64F2]/10 p-5 flex flex-col justify-between relative">
+                        <div className="flex items-center justify-between border-b border-[#1C64F2]/15 pb-2 mb-4">
+                          <span className="font-mono text-[9px] text-[#00F0FF] tracking-widest uppercase">MULTICHARACTER CINEMATIC STENCIL</span>
+                          <span className="font-mono text-[9px] text-purple-400">STATUS: INTERPOLATING FACE_SYNC</span>
+                        </div>
 
-                  {/* Waveform graphic visualization */}
-                  <div className="flex-1 min-h-[120px] bg-black/60 rounded border border-[#1C64F2]/15 flex items-center justify-center p-4">
-                    {activeSynthWave ? (
-                      <div className="w-full flex flex-col items-center text-center">
-                        <div className="flex items-end justify-center w-full gap-1 h-14 mb-2">
-                          {[...Array(40)].map((_, i) => (
-                            <motion.div
-                              key={i}
-                              animate={{ 
-                                height: activeSynthWave === "sine" 
-                                  ? [12, 38, 12] 
-                                  : activeSynthWave === "sawtooth" 
-                                  ? [4, 46, 4] 
-                                  : activeSynthWave === "square" 
-                                  ? [46, 46, 4, 4] 
-                                  : [4, 40, 4] 
-                              }}
-                              transition={{ 
-                                repeat: Infinity, 
-                                duration: 0.8 + (i % 4) * 0.1, 
-                                ease: "easeInOut" 
-                              }}
-                              className={`w-1 rounded-t ${
-                                activeSynthWave === "sine"
-                                  ? "bg-[#00F0FF]"
-                                  : activeSynthWave === "sawtooth"
-                                  ? "bg-amber-400"
-                                  : activeSynthWave === "square"
-                                  ? "bg-emerald-400"
-                                  : "bg-indigo-400"
-                              }`}
-                            />
+                        {/* Rendering Canvas Preview */}
+                        <div className="h-28 rounded bg-[#080B1C]/70 border border-[#1C64F2]/5 flex items-center justify-center relative overflow-hidden">
+                          <div className="absolute inset-0 flex items-center justify-around opacity-20 pointer-events-none">
+                            <div className="w-12 h-12 rounded-full border border-purple-500 animate-ping" />
+                            <div className="w-16 h-16 border border-[#00F0FF] rotate-45 animate-spin-slow" />
+                          </div>
+                          <div className="z-10 text-center">
+                            <span className="font-mono text-[11px] text-white/90 tracking-widest uppercase block font-bold">
+                              ACTIVE VIDEO COMPOSITION TIMELINE
+                            </span>
+                            <span className="font-mono text-[8.5px] text-[#A0AEC0] block mt-1">
+                              RENDERING SEQUENCE : {Math.round(timelinePlayhead)}% COMPLETED OUT OF 300 FRAMES
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Animated Scrubber playhead timeline */}
+                        <div className="mt-4">
+                          <div className="flex justify-between font-mono text-[8px] text-[#A0AEC0] mb-1.5 uppercase">
+                            <span>00:00:00:00</span>
+                            <span className="text-[#00F0FF]">SCRUBBING TIMELINE SEQUENCE</span>
+                            <span>00:00:12:30</span>
+                          </div>
+                          <div className="h-6 bg-[#040714] rounded border border-[#1C64F2]/20 relative overflow-hidden flex items-center">
+                            {/* Running timeline stripes */}
+                            <div className="absolute inset-0 opacity-[0.03] bg-repeat-x bg-[linear-gradient(90deg,white_1px,transparent_1px)] bg-[size:10px_100%]" />
+                            {/* Animated scrubbing bar representing playhead */}
+                            <div 
+                              className="h-full bg-gradient-to-r from-purple-500/20 to-[#00F0FF]/40 border-r-2 border-[#00F0FF] relative transition-all duration-150" 
+                              style={{ width: `${timelinePlayhead}%` }}
+                            >
+                              <div className="absolute right-0 top-0 w-2 h-2 bg-[#00F0FF] rotate-45 -translate-y-1/2 translate-x-1/2" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Video tracks */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="p-2.5 bg-[#080B1C]/60 rounded border border-[#1C64F2]/10 font-mono text-[8.5px] text-[#A0AEC0] uppercase">
+                          <span className="text-white block font-bold mb-1">TRACK 1: CINEMA GEOMETRY</span>
+                          Active face coordinate vectors: 4,096 nodes matched
+                        </div>
+                        <div className="p-2.5 bg-[#080B1C]/60 rounded border border-[#1C64F2]/10 font-mono text-[8.5px] text-[#A0AEC0] uppercase block">
+                          <span className="text-white block font-bold mb-1">TRACK 2: CHOREOGRAPHY SYST</span>
+                          Auto beat-synchronized timing ratio: 1/16 frames
+                        </div>
+                        <div className="p-2.5 bg-[#080B1C]/60 rounded border border-[#1C64F2]/10 font-mono text-[8.5px] text-[#A0AEC0] uppercase block">
+                          <span className="text-white block font-bold mb-1">TRACK 3: AUDIO FEED FLUX</span>
+                          Lossless 24-bit surround-sound dynamic filter sync
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 2. QUANT_SYNC SIMULATOR (Pulsing Tech Chart) */}
+                  {appNode.simulationType === "quantsync" && (
+                    <div className="relative z-10 flex flex-col justify-between h-full gap-5" id="sim-quantsync">
+                      <div className="flex justify-between items-center bg-[#080B1C]/90 p-4 border border-[#1C64F2]/25 rounded">
+                        <div className="flex items-center gap-3">
+                          <TrendingUp className="w-5 h-5 text-[#00F0FF] animate-pulse" />
+                          <div>
+                            <p className="font-display text-xs text-white font-bold tracking-widest uppercase">
+                              QUANT_SYNC MT5 CLOUD ANALYTICAL STREAM
+                            </p>
+                            <p className="font-mono text-[9px] text-[#A0AEC0] tracking-wide mt-0.5">
+                              NEURAL RESEARCH CORE // LATENCY FEED CONTROL
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-mono text-[10px] text-emerald-400 font-bold block">
+                            ACTIVE INDEX RATE: {tickerPrice.toFixed(5)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Tech chart grids & oscillator */}
+                      <div className="flex-1 my-4 bg-black/85 rounded border border-[#1C64F2]/15 p-4 flex flex-col justify-between">
+                        <div className="flex justify-between font-mono text-[9px] text-[#A0AEC0] border-b border-[#1C64F2]/15 pb-2">
+                          <span>Pair: EURUSD (Live ticks oscillator)</span>
+                          <span className="text-[#00F0FF] animate-pulse">BRIDGE CONNECTION: RUNNING via MQL5</span>
+                        </div>
+
+                        {/* Pulsing bars mimicking trading candlesticks & MACD */}
+                        <div className="h-32 flex items-end justify-between gap-1.5 pt-4">
+                          {candleData.map((height, idx) => (
+                            <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                              {/* Simulated candle stem */}
+                              <div className="w-[1.5px] h-4 bg-emerald-400/40" />
+                              {/* Simulated candle body block */}
+                              <motion.div 
+                                animate={{ height: `${height}%` }}
+                                transition={{ type: "spring", stiffness: 100, damping: 10 }}
+                                className={`w-full rounded-sm transition-all shadow-[0_0_10px_rgba(34,197,94,0.15)] ${idx % 2 === 0 ? "bg-emerald-500" : "bg-[#1C64F2]"}`} 
+                              />
+                            </div>
                           ))}
                         </div>
-                        <span className="font-mono text-[9px] text-[#A0AEC0] uppercase tracking-wider">
-                          GENERATING REALTIME SYNTH CODES
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <Activity className="w-8 h-8 text-[#1C64F2]/30 mx-auto mb-2 animate-pulse" />
-                        <span className="font-mono text-[9.5px] text-[#A0AEC0]/40 uppercase">
-                          No audio sequence loaded. Click custom wave pads above to trigger synthesized sounds.
-                        </span>
-                      </div>
-                    )}
-                  </div>
 
-                  <div className="border-t border-[#1C64F2]/15 pt-3 font-mono text-[9.5px] text-[#00F0FF] uppercase italic">
-                    {synthFeedback}
-                  </div>
-                </div>
-              )}
-
-              {/* 4. CRYPTOGRAPHIC SENTINEL SIMULATOR */}
-              {appNode.simulationType === "security" && (
-                <div className="relative z-10 flex flex-col justify-between h-full gap-5" id="simulator-crypto">
-                  <div className="p-4 bg-[#080B1C]/80 rounded border border-[#1C64F2]/20">
-                    <span className="font-mono text-[10px] text-[#A0AEC0] uppercase tracking-wider block mb-3">
-                      CURRENT ENCRYPTED GATEWAY SIGNATURE (AES-256-GCM)
-                    </span>
-                    <div className="flex flex-col sm:flex-row items-center gap-4 bg-black/50 p-4 rounded border border-[#1C64F2]/10">
-                      <div className="flex-1 font-mono text-xs text-white break-all uppercase tracking-widest bg-black px-3 py-2 rounded border border-[#1C64F2]/5">
-                        {activeKey}
-                      </div>
-                      <button
-                        onClick={handleShuffleCredentials}
-                        disabled={isShufflingKeys}
-                        className="px-5 py-2.5 bg-[#080B1C] border border-[#00F0FF] text-white hover:text-[#00F0FF] hover:border-[#00F0FF] rounded font-display text-[10px] font-bold tracking-widest uppercase cursor-pointer transition-all flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isShufflingKeys ? "animate-spin" : ""}`} />
-                        <span>SHUFFLE INTERACTIVE KEY</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Scrolling firewall logs */}
-                  <div className="flex- grow bg-[#040714] border border-[#1C64F2]/15 rounded p-4 font-mono text-[9.5px] text-orange-400 h-[170px] overflow-y-auto">
-                    <div className="flex justify-between border-b border-[#1C64F2]/15 pb-2 mb-2 font-bold text-[#00F0FF] uppercase tracking-wider">
-                      <span>SECURE DECENTRALIZED PACKET HANDSHAKE STREAM</span>
-                      <span>ACTIVE GATE</span>
-                    </div>
-                    {securityLogs.length === 0 ? (
-                      <div className="text-[#A0AEC0]/40 text-center my-10 uppercase">
-                        Monitoring dynamic tunnel endpoints...
-                      </div>
-                    ) : (
-                      securityLogs.map((log, idx) => (
-                        <div key={idx} className="mb-1">
-                          {log}
+                        <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-[#1C64F2]/15 font-mono text-[8.5px] text-[#A0AEC0] uppercase">
+                          <div>
+                            <span className="text-white block font-bold">LATENCY HANDSHAKE</span>
+                            12.4ms MT5 Core Cloud Server
+                          </div>
+                          <div>
+                            <span className="text-white block font-bold">VOLATILITY COEFFICIENT</span>
+                            82.45% dynamic range ratio
+                          </div>
+                          <div>
+                            <span className="text-white block font-bold">TOTAL POSITION EXECUTED</span>
+                            0.25 standard active lots
+                          </div>
                         </div>
-                      ))
-                    )}
-                  </div>
-
-                  <div className="border-t border-[#1C64F2]/10 pt-2 font-mono text-[9px] text-[#A0AEC0] uppercase tracking-wider">
-                    TUNNEL ENCRYPTION PIPELINE GUARANTEES 100% EXPLOIT IMMUNITY
-                  </div>
-                </div>
-              )}
-
-              {/* 5. BENTO CDN ENGINE SIMULATOR */}
-              {appNode.simulationType === "cloud" && (
-                <div className="relative z-10 flex flex-col justify-between h-full gap-5" id="simulator-cdn">
-                  <div className="p-4 bg-[#080B1C]/80 rounded border border-[#1C64F2]/20 flex flex-col gap-4">
-                    <div className="flex justify-between items-center bg-black/40 p-3 rounded border border-[#1C64F2]/10">
-                      <div className="flex flex-col">
-                        <span className="font-mono text-[9px] text-[#A0AEC0] uppercase">PEER TUNNES HANDSHAKE STATUS</span>
-                        <span className="font-display text-xs text-white font-bold tracking-widest mt-0.5 uppercase">
-                          {cdnStatus === "idle" ? "IDLE SYSTEM" : cdnStatus === "buffering" ? "UP-BUFFERING PACKETS" : "OPTIMIZED CACHE NODES"}
-                        </span>
                       </div>
-                      <div className="text-right">
-                        <span className="font-mono text-[9px] text-[#A0AEC0] uppercase">CDN THROUGHPUT</span>
-                        <span className="font-mono text-xs text-[#00F0FF] font-bold block mt-0.5">
-                          {cdnSpeed} MBPS
-                        </span>
+
+                      <div className="bg-[#080B1C]/60 p-3.5 rounded border border-[#1C64F2]/10 font-mono text-[9px] text-[#00F0FF] uppercase flex items-center justify-between">
+                        <span>SYS ARCH: FIRESTORE SECURE DATABASE TELEMETRY CHANNEL</span>
+                        <span>HEALTH: 100% ONLINE</span>
                       </div>
                     </div>
+                  )}
 
-                    {/* Performance bars */}
-                    <div className="grid grid-cols-8 gap-2">
-                      {activeChunkProgress.map((val, idx) => (
-                        <div key={idx} className="bg-black/60 p-2.5 rounded border border-[#1C64F2]/10 flex flex-col items-center gap-2">
-                          <span className="font-mono text-[7px] text-[#A0AEC0]">NODE_0{idx}</span>
-                          <div className="w-1.5 h-16 bg-[#040714] rounded-full overflow-hidden flex flex-col justify-end">
-                            <div 
-                              className={`w-full rounded-full transition-all duration-300 ${val === 100 ? "bg-emerald-400" : "bg-cyan-400 animate-pulse"}`} 
-                              style={{ height: `${val}%` }} 
+                  {/* 3. MEDIA HERO SIMULATOR (Data tables for pattern detection) */}
+                  {appNode.simulationType === "media_hero" && (
+                    <div className="relative z-10 flex flex-col justify-between h-full gap-5" id="sim-media-hero">
+                      <div className="flex justify-between items-center bg-[#080B1C]/90 p-4 border border-[#1C64F2]/25 rounded">
+                        <div className="flex items-center gap-3">
+                          <Flame className="w-5 h-5 text-orange-400 animate-pulse" />
+                          <div>
+                            <p className="font-display text-xs text-white font-bold tracking-widest uppercase">
+                              MEDIA HERO ALGORITHMIC CO-PILOT
+                            </p>
+                            <p className="font-mono text-[9px] text-[#A0AEC0] mt-0.5 uppercase tracking-wider">
+                              VIRAL PATTERN AUDITING MATRIX // IMAGEN &amp; VEO GATEWAY
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-mono text-[9px] text-orange-400 tracking-wider">
+                          ALGO SECURE RATIO: 100%
+                        </span>
+                      </div>
+
+                      {/* Data table representation */}
+                      <div className="flex-1 my-3 bg-black/80 rounded border border-[#1C64F2]/15 p-4 overflow-x-auto">
+                        <div className="min-w-[450px]">
+                          <div className="grid grid-cols-12 font-mono text-[9.5px] text-[#00F0FF] border-b border-[#1C64F2]/20 pb-2 mb-2 font-bold uppercase tracking-wider">
+                            <span className="col-span-5">AUDITED SOCIAL VIRAL PATTERN</span>
+                            <span className="col-span-4">VULNERABILITY AUDIT SECURE</span>
+                            <span className="col-span-3 text-right">IMPACT RATINGS</span>
+                          </div>
+
+                          <div className="flex flex-col gap-2.5">
+                            {viralPatterns.map((item, idx) => (
+                              <div key={idx} className="grid grid-cols-12 font-mono text-[9px] text-[#A0AEC0] py-2 border-b border-[#1C64F2]/5 hover:bg-[#1C64F2]/5 px-1 rounded transition-colors uppercase">
+                                <span className="col-span-5 text-white font-semibold flex items-center gap-1.5">
+                                  <span className="w-1 h-1 bg-orange-400 rounded-full" />
+                                  {item.pattern}
+                                </span>
+                                <span className="col-span-4 text-emerald-400 font-bold">
+                                  {item.status} // CONFIRMED PASS
+                                </span>
+                                <span className="col-span-3 text-right text-[#00F0FF] font-bold">
+                                  {item.score}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 font-mono text-[8.5px] text-[#A0AEC0] uppercase">
+                        <div className="bg-[#080B1C]/50 p-2.5 border border-[#1C64F2]/10 rounded block">
+                          <span className="text-white block font-bold mb-1">IMAGEN OPTIMIZATION ENGINE</span>
+                          Automatic neural color grading is fully locked &amp; calibrated.
+                        </div>
+                        <div className="bg-[#080B1C]/50 p-2.5 border border-[#1C64F2]/10 rounded block">
+                          <span className="text-white block font-bold mb-1">VEO VIDEO RESHAPING STREAM</span>
+                          Interpolation timeline filters calculated synchronously.
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 4. MY_BUDGET_HERO SIMULATOR (Budget Bars Dashboard) */}
+                  {appNode.simulationType === "budget" && (
+                    <div className="relative z-10 flex flex-col justify-between h-full gap-5" id="sim-budget">
+                      <div className="flex justify-between items-center bg-[#080B1C]/90 p-4 border border-[#1C64F2]/25 rounded">
+                        <div className="flex items-center gap-3">
+                          <Briefcase className="w-5 h-5 text-emerald-400 animate-pulse" />
+                          <div>
+                            <p className="font-display text-xs text-white font-bold tracking-widest uppercase">
+                              MyBudgetHero HYBRID CAD SLATE LEDGERS
+                            </p>
+                            <p className="font-mono text-[9px] text-[#A0AEC0] mt-0.5 uppercase tracking-wider">
+                              STRUCTURAL CONSTRUCTION // WEB Wealth SPREADSHEET SYNC
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-mono text-[9px] text-emerald-400 tracking-wider">
+                          DB REPLICA: SUPABASE OK
+                        </span>
+                      </div>
+
+                      {/* Budget cost-progress bars */}
+                      <div className="flex-1 my-3 bg-black/80 rounded border border-[#1C64F2]/15 p-4 flex flex-col gap-3 justify-center">
+                        <span className="font-mono text-[9px] text-[#00F0FF] block border-b border-[#1C64F2]/15 pb-1.5 uppercase font-bold tracking-wider">
+                          REAL-TIME EXPENSE METRICS vs BUDGET LIMIT CORES
+                        </span>
+
+                        <div className="flex flex-col gap-3.5">
+                          {projectBudgets.map((b, idx) => {
+                            const ratio = Math.round((b.activeSpend / b.planned) * 100);
+                            return (
+                              <div key={idx} className="flex flex-col gap-1 font-mono text-[9px]">
+                                <div className="flex justify-between text-[#A0AEC0] uppercase">
+                                  <span className="text-white font-semibold truncate max-w-[280px]">{b.category}</span>
+                                  <span>${b.activeSpend.toLocaleString()} / ${b.planned.toLocaleString()} ({ratio}%)</span>
+                                </div>
+                                <div className="w-full h-2.5 bg-[#040714] rounded border border-[#1C64F2]/20 overflow-hidden flex">
+                                  <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${ratio}%` }}
+                                    transition={{ duration: 1, delay: idx * 0.1 }}
+                                    className={`h-full ${ratio >= 100 ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]" : "bg-cyan-500"}`}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="font-mono text-[8.5px] text-[#A0AEC0] uppercase bg-[#080B1C]/60 p-3 rounded border border-[#1C64F2]/10 flex justify-between">
+                        <span>CAD Blueprints Sync Factor: Active</span>
+                        <span>Site cost replication ledger: Live</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. AURA PREDICTOR PRO SIMULATOR (High contrast match matrices matrices) */}
+                  {appNode.simulationType === "aura" && (
+                    <div className="relative z-10 flex flex-col justify-between h-full gap-5" id="sim-aura">
+                      <div className="flex justify-between items-center bg-[#080B1C]/90 p-4 border border-[#1C64F2]/25 rounded">
+                        <div className="flex items-center gap-3">
+                          <Trophy className="w-5 h-5 text-amber-500 animate-pulse" />
+                          <div>
+                            <p className="font-display text-xs text-white font-bold tracking-widest uppercase">
+                              AURA SPORTS VALUE PROBABILITY MATRICES
+                            </p>
+                            <p className="font-mono text-[9px] text-[#A0AEC0] mt-0.5 uppercase tracking-wider">
+                              ANTI-BIAS SQUAD STRENGTH OPTIMIZER // COMBO REALISM ENGINE
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-mono text-[9px] text-amber-500 tracking-wider">
+                          INDEXER: RAW SLIP
+                        </span>
+                      </div>
+
+                      {/* Football matrices table list */}
+                      <div className="flex-1 my-3 bg-black/80 rounded border border-[#1C64F2]/15 p-3 overflow-y-auto max-h-[220px]">
+                        <div className="flex flex-col gap-2">
+                          <div className="grid grid-cols-12 font-mono text-[9px] text-[#00F0FF] border-b border-[#1C64F2]/15 pb-2 font-bold mb-1 uppercase tracking-wider">
+                            <span className="col-span-5">FOOTBALL MATCH</span>
+                            <span className="col-span-3">STRENGTHS</span>
+                            <span className="col-span-4 text-right">VALUE SELECTION</span>
+                          </div>
+
+                          {matchOdds.map((m, id) => (
+                            <div key={id} className="grid grid-cols-12 font-mono text-[9.5px] text-[#A0AEC0] py-1.5 border-b border-[#1C64F2]/5 uppercase items-center">
+                              <span className="col-span-5 text-white font-semibold">{m.home} vs {m.away}</span>
+                              <span className="col-span-3 text-cyan-400">{m.strengthFactor}</span>
+                              <span className="col-span-4 text-right text-emerald-400 font-bold">
+                                {m.algorithmValue} (@{m.calculatedOdds.toFixed(2)})
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Realistic ticket generator block code */}
+                      <div className="bg-[#080B1C]/80 rounded p-3 border border-[#1C64F2]/15 flex flex-col justify-between">
+                        <div className="flex items-center justify-between font-mono text-[9px] text-[#A0AEC0] border-b border-[#1C64F2]/5 pb-1 uppercase mb-1.5">
+                          <span>Aura Combos Accumulator Slip Summary</span>
+                          <span>3 Legs Active</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono text-[9px] text-[#A0AEC0]">STAKE (USD):</span>
+                            <input
+                              type="number"
+                              value={customStake}
+                              onChange={(e) => setCustomStake(e.target.value)}
+                              className="bg-[#040714] border border-[#1C64F2]/30 text-white font-mono text-xs w-16 px-1.5 py-0.5 rounded focus:outline-none focus:border-[#00F0FF]"
                             />
                           </div>
-                          <span className="font-mono text-[7px] text-white font-bold">{val}%</span>
+                          <span className="font-mono text-[10px] text-white">
+                             Estimated True Return: <span className="text-[#00F0FF] font-black">${(parseFloat(customStake || "0") * (1.95 * 1.62 * 3.40)).toFixed(2)}</span>
+                          </span>
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {appNode.simulationType === "culina" && (
+                    <div className="relative z-10 flex flex-col justify-between h-full gap-5 font-poppins text-white animate-fade-in" id="sim-culina">
+                      {/* Top Banner with Flame Gradient for structural headers & Sora Font */}
+                      <div className="bg-gradient-to-r from-[#FF7A18] via-[#FF8A35] to-[#FFB347] p-4 rounded text-black flex justify-between items-center shadow-[0_4px_20px_rgba(255,122,24,0.15)] select-none">
+                        <div className="flex items-center gap-3">
+                          <ChefHat className="w-6 h-6 text-black animate-pulse" />
+                          <div>
+                            <h4 className="font-sora font-black text-xs tracking-wider uppercase text-black leading-tight">
+                              Culina Cinematic Chef Core // Active
+                            </h4>
+                            <p className="font-mono text-[8.5px] text-black/85 font-semibold tracking-wide uppercase mt-0.5">
+                              Sora Geometric Platform // AI Kitchen Terminal V1.96
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-mono font-bold text-[9px] px-2 py-0.5 rounded border border-black/30 bg-black/10 uppercase">
+                          Mode: {selectedProfileMode}
+                        </span>
+                      </div>
+
+                      {/* Bento Grid layout with food blocks & vendor directory */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Left Column: Bento Food Discovery block */}
+                        <div className="p-4 rounded bg-[#171717] border border-[#FF7A18]/15 flex flex-col justify-between min-h-[190px]">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <BookOpen className="w-3.5 h-3.5 text-[#FFB347]" />
+                              <span className="font-sora font-semibold text-[8px] text-[#FFB347] uppercase tracking-wider">
+                                African &amp; World Culinary Discovery
+                              </span>
+                            </div>
+                            <div className="flex flex-col gap-1.5 mt-2">
+                              {culinaryDiscoveryItems.map((item, id) => (
+                                <button
+                                  key={id}
+                                  onClick={() => {
+                                    setActiveRecipe(item.name);
+                                    setCookingProgress(25); // reset progress on select to show interactive reactivity
+                                  }}
+                                  className={`w-full text-left p-1.5 rounded transition-all flex items-center justify-between group cursor-pointer ${activeRecipe === item.name ? "bg-[#FF7A18]/10 border border-[#FF7A18]/30" : "bg-black/30 hover:bg-[#FF7A18]/5 border border-transparent"}`}
+                                >
+                                  <div className="truncate pr-1 text-left">
+                                    <span className={`text-[9.5px] font-bold block truncate uppercase ${activeRecipe === item.name ? "text-[#FF8A35]" : "text-white/85 group-hover:text-[#FF7A18]"}`}>
+                                      {item.name}
+                                    </span>
+                                    <span className="font-mono text-[7px] text-[#A0AEC0] block lowercase">
+                                      {item.origin} // {item.prepTime}
+                                    </span>
+                                  </div>
+                                  <span className={`text-[7px] font-mono font-bold px-1 rounded uppercase ${item.difficulty === "High" ? "text-red-400 bg-red-400/5" : "text-amber-400 bg-amber-400/5"}`}>
+                                    {item.difficulty}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right Column: Simulated Local Vendor Directory Map */}
+                        <div className="p-4 rounded bg-[#171717] border border-[#FF7A18]/15 flex flex-col justify-between min-h-[190px]">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <MapPin className="w-3.5 h-3.5 text-[#FFB347]" />
+                              <span className="font-sora font-semibold text-[8px] text-[#FFB347] uppercase tracking-wider">
+                                Raw Ingredients &amp; Local Vendor Map
+                              </span>
+                            </div>
+                            
+                            {/* The schematic map representation */}
+                            <div className="relative h-20 bg-black/50 rounded border border-[#FF7A18]/10 flex items-center justify-center overflow-hidden mb-3">
+                              <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#FF7A18_1px,transparent_1px)] [background-size:12px_12px]" />
+                              {/* Pulsing focal orange ring radar represent position */}
+                              <div className="absolute top-[35%] left-[55%] w-6 h-6 rounded-full border border-[#FF7A18] animate-ping" />
+                              <div className="absolute top-[35%] left-[55%] w-2 h-2 rounded-full bg-[#FF7A18]" />
+                              <span className="font-mono text-[8.5px] text-white/50 absolute bottom-1 right-2 uppercase">
+                                LAGOS COORD NODES
+                              </span>
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                              {localVendors.map((vendor, vidx) => (
+                                <div key={vidx} className="flex justify-between items-center text-[8px] font-mono py-1 border-b border-white/5 text-[#A0AEC0] uppercase">
+                                  <div className="truncate pr-1 text-left">
+                                    <span className="text-white block font-bold truncate">{vendor.name}</span>
+                                    <span className="text-[#A0AEC0]/85 lowercase block">{vendor.item}</span>
+                                  </div>
+                                  <div className="text-right whitespace-nowrap">
+                                    <span className="text-[#FF7A18] font-bold block">{vendor.distance}</span>
+                                    <span className="text-emerald-400 block">{vendor.status}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* STEP-BY-STEP COOKING PROGRESS MODULE (Interactive bar) */}
+                      <div className="p-4 rounded bg-[#121212] border border-[#FF7A18]/20 flex flex-col gap-2.5">
+                        <div className="flex justify-between items-baseline">
+                          <span className="font-sora text-[9px] font-bold text-[#FFB347] uppercase tracking-wider">
+                            Active Chef Guided Step Tracker
+                          </span>
+                          <span className="font-mono text-[8.5px] text-[#A0AEC0] uppercase">
+                            Step 3 of 5 // Simulating Timer
+                          </span>
+                        </div>
+                        
+                        {/* Animated cooking progress bar */}
+                        <div className="relative">
+                          <div className="flex justify-between font-mono text-[7.5px] text-[#A0AEC0] mb-1">
+                            <span className="truncate max-w-[250px] text-white uppercase text-left">Active recipe: {activeRecipe}</span>
+                            <span className="text-[#FF7A18] font-black">{cookingProgress}% Done</span>
+                          </div>
+                          <div className="h-4 bg-black rounded border border-[#FF7A18]/30 relative overflow-hidden flex items-center">
+                            <div 
+                              className="h-full bg-gradient-to-r from-[#FF7A18] to-[#FFB347] relative transition-all duration-300"
+                              style={{ width: `${cookingProgress}%` }}
+                            >
+                              <div className="absolute right-0 top-0 bottom-0 w-1 bg-white animate-pulse" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Dynamic step instructions depending on selected recipe */}
+                        <div className="bg-black/40 p-2.5 rounded border border-[#FF7A18]/10 font-mono text-[8.5px] text-[#A0AEC0] leading-relaxed uppercase text-left">
+                          <span className="text-[#FFB347] font-bold block mb-1">CURRENT DIRECTIVE:</span>
+                          {activeRecipe.includes("Jollof") 
+                            ? "Pour parboiled long-grain rice into the robust red tomato-pepper reduction. Seal the container lid to capture moisture and secure sensory flavor alignment."
+                            : activeRecipe.includes("Bobotie")
+                            ? "Lightly pour the golden egg-custard mixture over the spiced minced lamb layers. Toss a selection of fresh bay leaves across the workspace surface."
+                            : activeRecipe.includes("Tagine")
+                            ? "Simmer spiced mutton cuts over steady low fireplace heat. Infuse specialty dates and roasted honeyed almonds during the final frame cycle."
+                            : "Lay out the freshly fermented teff injera bread. Neatly arrange spiced beef wots and vegetarian lentils across the organic plate matrix."
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+
+              {/* =============== RIGHT PANE: THE FEATURE CATALOG OR ACTIVATION =============== */}
+              <div className="lg:col-span-5 flex flex-col gap-6" id="right-feature-catalog-and-checkout">
+                
+                {/* Feature catalog list */}
+                <div className="p-6 rounded-lg border border-[#1C64F2]/20 bg-[#080B1C]/60 backdrop-blur-sm relative overflow-hidden">
+                  <span className="font-mono text-[10px] text-[#00F0FF] tracking-widest uppercase block mb-4 font-bold">
+                    CORE CREATIVE ARCHITECTURAL PILLARS
+                  </span>
+                  
+                  <div className="flex flex-col gap-4">
+                    {appNode.capabilities.map((cap, idx) => (
+                      <div key={idx} className="flex items-start gap-3 bg-[#040714]/65 p-3.5 rounded border border-[#1C64F2]/10 hover:border-[#00F0FF]/30 transition-all font-sans text-xs">
+                        <div className="p-1.5 bg-[#1C64F2]/10 border border-[#1C64F2]/20 text-[#00F0FF] rounded mt-0.5 flex-shrink-0">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="font-display font-bold text-white tracking-wide uppercase">{cap}</p>
+                          <p className="text-[10px] text-[#A0AEC0] mt-1 uppercase">INTEGRATED ON STANDALONE INSTANT PORT STACKS</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Active backend software framework tags info */}
+                  <div className="mt-6 pt-5 border-t border-[#1C64F2]/15">
+                    <span className="font-mono text-[9px] text-[#A0AEC0] uppercase tracking-wider block mb-2 font-semibold">
+                      INCORPORATED PLATFORM STACKS:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {appNode.architectureStack.map((stack, sIdx) => (
+                        <span key={sIdx} className="font-mono text-[9px] text-white bg-[#040714] border border-[#1C64F2]/15 px-2.5 py-1 rounded">
+                          {stack}
+                        </span>
                       ))}
                     </div>
                   </div>
+                </div>
 
-                  <div className="flex items-center justify-between border-t border-[#1C64F2]/15 pt-4 mt-2">
-                    <span className="font-mono text-[9px] text-[#A0AEC0] uppercase tracking-wide">
-                      MULTIPATH CHUNKING MODEL OPTIMIZES LATENCY DECAY BY 94%.
-                    </span>
-                    <button
-                      onClick={handleTriggerCdnBuffering}
-                      className="px-4 py-2 bg-[#080B1C] border border-[#1C64F2] text-white hover:text-[#00F0FF] hover:border-[#00F0FF] rounded font-display text-[10px] tracking-widest uppercase cursor-pointer flex items-center gap-2 transition-all"
-                    >
-                      <span>TEST BUFFER SPEED</span>
-                    </button>
-                  </div>
+                {/* THE CONVERSION BASE OR INSTANT ACTIVE PORTAL PANEL */}
+                <div className="p-6 rounded-lg border border-[#10B981]/30 bg-[#040914]/85 relative overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.06)] flex flex-col justify-between" id="conversion-base-card">
+                  {/* Subtle decorative pulsing layout */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#1C64F2]/5 via-transparent to-[#10B981]/5" />
+                  
+                  {checkoutState === "active_success" ? (
+                    <div className="relative z-10 text-center py-4 flex flex-col items-center">
+                      <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-400 rounded-full flex items-center justify-center text-emerald-400 mb-4 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                        <ShieldCheck className="w-6 h-6" />
+                      </div>
+                      <h3 className="font-display text-base font-bold text-white uppercase tracking-widest">
+                        SECURE ACTIVE PORT STATE REGISTERED
+                      </h3>
+                      <p className="font-sans text-xs text-slate-350 bg-[#080B1C] border border-[#1C64F2]/15 p-3 rounded mt-4 max-w-sm uppercase leading-relaxed text-[#A0AEC0]">
+                        Identity: <span className="text-white font-bold">{savedUser?.email}</span>
+                        {savedUser?.mt5Id ? (
+                          <> <br /> Account MT5 ID: <span className="text-white font-bold">{savedUser.mt5Id}</span></>
+                        ) : savedUser?.teamName ? (
+                          <> <br /> {appNode.simulationType === "culina" ? "Culinary Profile Mode" : "Variable Tag"}: <span className={`${appNode.simulationType === "culina" ? "text-[#FF8A35]" : "text-[#00F0FF]"} font-bold`}>{savedUser.teamName}</span></>
+                        ) : null}
+                      </p>
+
+                      {/* Pulled from Target Links mapping */}
+                      <a
+                        href={appNode.targetUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full mt-6 py-4 px-6 rounded bg-gradient-to-r from-emerald-500 to-teal-400 text-[#040714] font-display font-black text-xs tracking-[0.2em] hover:from-teal-400 hover:to-emerald-500 transition-all duration-300 text-center uppercase cursor-pointer hover:shadow-[0_0_30px_rgba(16,185,129,0.59)] block"
+                      >
+                        LAUNCH APPLICATION
+                      </a>
+
+                      <button
+                        onClick={handleDeactivateSubscription}
+                        className="mt-5 font-mono text-[9px] text-[#A0AEC0] hover:text-red-400 transition-colors uppercase cursor-pointer flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>DEACTIVATE MOCK SUBSCRIPTION</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative z-10 flex flex-col justify-between">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="font-mono text-[9px] text-[#10B981] font-black uppercase tracking-widest block mb-1">
+                            STRATEGY A // PREMIUM PORT TIERS
+                          </span>
+                          <h3 className="font-display text-sm text-white font-bold uppercase tracking-wider">
+                            EXCLUSIVE CLOUD ACCESS TIER
+                          </h3>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-mono text-[9px] text-[#A0AEC0] uppercase block">ACCESS RATE</span>
+                          <span className="font-mono text-xs text-white font-black block mt-0.5">
+                            $150 USD / MONTH
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="font-sans text-[11px] text-[#A0AEC0] mt-4 uppercase leading-relaxed">
+                        Subscription validates credentials instantly across our Firestore backend nodes on Google Cloud. Grants 100% unrestricted priority access.
+                      </p>
+
+                      <button
+                        onClick={handleInitializeSubscription}
+                        className="w-full mt-6 py-3.5 bg-gradient-to-r from-[#1C64F2] via-[#10B981] to-[#00F0FF] font-display text-xs text-[#040714] font-black tracking-[0.15em] rounded transition-all duration-500 cursor-pointer animate-pulse-slow uppercase hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] block hover:scale-[1.01]"
+                        id="btn-initialize-subscription"
+                      >
+                        Get Instant Access
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </motion.div>
+          ) : (
+            // =============== STEP 2-3 FUNNEL PAYMENTS AND ACTIVATION MODAL SCREEN ===============
+            <motion.div
+              key="checkout-gateways"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.4 }}
+              className="max-w-xl mx-auto my-12 bg-[#080B1C] border border-[#1C64F2]/30 rounded-lg p-8 relative shadow-[0_0_40px_rgba(28,100,242,0.15)]"
+            >
+              {/* Foreground Grid Mesh Layer */}
+              <div className="absolute inset-0 digital-grid opacity-35 pointer-events-none" />
+
+              {/* ACTION ENDPOINT redirect spinner state */}
+              {checkoutState === "redirecting" && (
+                <div className="text-center py-10 relative z-10 flex flex-col items-center justify-center">
+                  <RefreshCw className="w-10 h-10 text-[#00F0FF] animate-spin mb-4" />
+                  <h4 className="font-display text-sm text-white font-black tracking-widest uppercase">
+                    ESTABLISHING PAYMENT HANDSHAKE TUNNEL
+                  </h4>
+                  <p className="font-mono text-[10px] text-[#A0AEC0] uppercase mt-2">
+                    RE-ROUTING SECURE REQUEST TO THE CHECKOUT GATEWAY GATE...
+                  </p>
                 </div>
               )}
 
-            </div>
-          </div>
-
-          {/* TECHNICAL DETAILS SIDE (Glass-morphic parameters / Stack specs) */}
-          <div className="lg:col-span-5 flex flex-col gap-6" id="col-technical-details">
-            
-            {/* Tech Stack card */}
-            <div className="p-6 rounded-lg border border-[#1C64F2]/20 bg-[#080B1C]/65 backdrop-blur-sm relative overflow-hidden radar-sweep">
-              <span className="font-mono text-[10px] text-[#00F0FF] tracking-widest uppercase block mb-4">
-                ENGINEERED FRAMEWORK SPECIFICATIONS
-              </span>
-              <h3 className="font-display text-sm text-white font-bold tracking-wider mb-6 border-b border-[#1C64F2]/10 pb-3 uppercase">
-                ENGINE SYSTEM COMPILER STACK
-              </h3>
-              <div className="grid grid-cols-2 gap-3" id="tech-stack-items">
-                {appNode.architectureStack.map((tech, idx) => (
-                  <div 
-                    key={idx} 
-                    className="p-3 bg-[#040714]/65 border border-[#1C64F2]/10 rounded flex items-center gap-2.5 hover:border-[#00F0FF]/30 transition-colors"
-                  >
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] shrink-0" />
-                    <span className="font-mono text-xs text-[#A0AEC0] tracking-wide whitespace-nowrap">{tech}</span>
+              {/* SELAR checkout gateway mockup state */}
+              {checkoutState === "simulating_checkout" && (
+                <div className="relative z-10 text-center py-4 flex flex-col items-center">
+                  <div className="w-10 h-10 bg-[#1D4ED8]/10 border border-blue-500 rounded-full flex items-center justify-center text-[#1C64F2] mb-4">
+                    <Database className="w-5 h-5 animate-pulse text-[#00F0FF]" />
                   </div>
-                ))}
-              </div>
-            </div>
+                  <h4 className="font-display text-[#00F0FF] text-xs tracking-[0.2em] font-black uppercase">
+                    SELAR CHECKOUT SIMULATION GATEWAY
+                  </h4>
+                  <p className="font-sans text-sm text-white font-bold uppercase mt-2 tracking-wide">
+                    SECURED INCOMING PAYMENT CHANNEL FOR {appNode.title.toUpperCase()}
+                  </p>
 
-            {/* Core Capabilities card */}
-            <div className="p-6 rounded-lg border border-[#1C64F2]/20 bg-[#080B1C]/65 backdrop-blur-sm">
-              <span className="font-mono text-[10px] text-[#00F0FF] tracking-widest uppercase block mb-4">
-                PLATFORM CAPABILITIES OVERVIEW
-              </span>
-              <h3 className="font-display text-sm text-white font-bold tracking-wider mb-6 border-b border-[#1C64F2]/10 pb-3 uppercase">
-                HIGH THRU-PUT VECTOR PARAMETERS
-              </h3>
-              <div className="flex flex-col gap-4" id="capability-items">
-                {appNode.capabilities.map((cap, idx) => (
-                  <div key={idx} className="flex gap-3 text-start">
-                    <CheckCircle className="w-4 h-4 text-[#00F0FF] shrink-0 mt-0.5" />
-                    <div className="flex flex-col">
-                      <span className="font-sans text-xs text-white font-bold uppercase tracking-wide">
-                        CAPABILITY_NODE_0{idx + 1}
-                      </span>
-                      <p className="font-sans text-xs text-[#A0AEC0] mt-1 uppercase leading-relaxed">
-                        {cap}
-                      </p>
+                  <div className="my-6 p-4 rounded bg-[#040714] border border-[#1C64F2]/15 max-w-sm w-full text-left font-mono text-xs text-[#A0AEC0] flex flex-col gap-2">
+                    <div className="flex justify-between">
+                      <span>Gateway Vendor ID:</span>
+                      <span className="text-white font-bold uppercase">7234X_SELAR</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Billed Amount Price:</span>
+                      <span className="text-[#00F0FF] font-black">$150.00 USD</span>
+                    </div>
+                    <div className="flex justify-between border-t border-[#1C64F2]/10 pt-2 text-[10px]">
+                      <span>Dynamic Security token:</span>
+                      <span className="truncate max-w-[120px] text-white">sha256_0x3F2AE16B7</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
 
-          </div>
-        </div>
-
-        {/* Component D's Bottom: THE PREMIUM SUBSCRIPTION TAB & ACCOUNT ACTIVATION FORM */}
-        <div className="mt-14 border-t border-[#1C64F2]/20 pt-14" id="subscription-anchor">
-          <div className="max-w-3xl mx-auto">
-            
-            {/* Standalone card with pulsing border */}
-            <div className="p-8 rounded-lg border-2 border-dashed border-[#1C64F2] hover:border-[#00F0FF] bg-[#080B1C]/80 relative overflow-hidden panel-glow group shadow-[0_0_30px_rgba(28,100,242,0.1)] transition-all">
-              
-              <div className="absolute top-0 right-0 p-4 font-mono text-[9px] text-[#00F0FF] tracking-widest border-b border-l border-[#1C64F2]/20 bg-black/40 rounded-bl">
-                MODULE ENTIRETY VALUE
-              </div>
-
-              {/* State A: Idle (Prompting Subscription) */}
-              {checkoutState === "idle" && (
-                <div className="text-center py-6 flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full border border-[#00F0FF] flex items-center justify-center bg-[#040714] mb-4 text-[#00F0FF]">
-                    <Sparkles className="w-5 h-5 animate-pulse" />
-                  </div>
-                  <h3 className="font-display text-lg md:text-xl text-white font-bold tracking-widest uppercase">
-                    Initialize Premium Subscription Node
-                  </h3>
-                  <p className="font-sans text-xs text-[#A0AEC0] mt-3 uppercase max-w-lg mx-auto leading-relaxed">
-                    Unlock exclusive global commercial rights, sub-millisecond API endpoints, custom CSV log exports, and direct priority compiler pipelines on our secure hosts.
+                  <p className="text-[10px] text-[#A0AEC0] uppercase max-w-sm leading-relaxed mb-6">
+                    This simulation mirrors our official Selar secure payment gateway. Simply authorize below to simulate a successful mock credit dispatch.
                   </p>
-                  
-                  {/* Glowing Activation Button */}
-                  <div className="mt-8 relative">
-                    <div className="absolute -inset-1 rounded bg-gradient-to-r from-[#1C64F2] to-[#00F0FF] blur opacity-65 animate-pulse group-hover:opacity-100 transition-opacity" />
+
+                  <div className="flex gap-4 w-full">
                     <button
-                      onClick={handleInitializeSubscription}
-                      className="relative px-8 py-4 bg-[#040714] border border-[#00F0FF] hover:border-white font-display text-xs font-bold tracking-widest text-[#00F0FF] hover:text-white rounded transition-all uppercase cursor-pointer"
-                      id="btn-init-sub"
+                      onClick={() => setCheckoutState("idle")}
+                      className="flex-1 py-3 border border-[#1C64F2]/30 text-white rounded font-display text-[10px] tracking-widest uppercase transition-all cursor-pointer hover:bg-white/5 active:bg-white/10"
                     >
-                      INITIALIZE SUBSCRIPTION
+                      ABORT TRANS
+                    </button>
+                    <button
+                      onClick={handleSimulateSuccessfulPayment}
+                      className="flex-grow flex-1 py-3 bg-gradient-to-r from-[#1C64F2] to-[#00F0FF] text-[#040714] font-display text-[10px] font-black tracking-widest uppercase rounded cursor-pointer transition-all hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] block"
+                    >
+                      CONFIRM PAYMENT
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* State B: Redirecting to External Gateway */}
-              {checkoutState === "redirecting" && (
-                <div className="text-center py-8">
-                  <RefreshCw className="w-10 h-10 text-[#00F0FF] animate-spin mx-auto mb-4" />
-                  <h3 className="font-display text-xs text-white font-bold tracking-widest uppercase mb-2">
-                    REDIRECTING TO SECURE EXTERNAL PAYMENT HANDLER (SELAR CHECKOUT)
-                  </h3>
-                  <p className="font-mono text-[10px] text-[#A0AEC0] uppercase max-w-sm mx-auto">
-                    Loading encrypted Selar merchant gateway configuration. Do not reload or shut the current viewport.
-                  </p>
-                </div>
-              )}
-
-              {/* State C: Simulated Checkout Form (High-Fidelity Merchant Mock) */}
-              {checkoutState === "simulating_checkout" && (
-                <div className="rounded border border-[#1C64F2]/30 bg-[#040714] p-6 max-w-md mx-auto relative">
-                  <div className="flex justify-between items-center border-b border-[#1C64F2]/25 pb-3 mb-4 font-mono text-[10px] text-[#A0AEC0]">
-                    <span className="font-bold text-[#00F0FF] uppercase">SELAR SECURE MERCHANT</span>
-                    <span>GATEWAY SECURED</span>
-                  </div>
-
-                  <h3 className="font-display text-xs text-white font-bold tracking-widest uppercase mb-2">
-                    PROPRIETARY CHEKOUT ORDER DE109
-                  </h3>
-                  
-                  <div className="flex justify-between items-center bg-[#080B1C]/90 p-3 rounded border border-[#1C64F2]/10 my-4">
-                    <span className="font-mono text-[10px] text-white uppercase">{appNode.title} Premium license</span>
-                    <span className="font-mono text-xs text-[#00F0FF] font-black">$450.00 USD</span>
-                  </div>
-
-                  <p className="font-sans text-[11px] text-[#A0AEC0] mb-6 leading-relaxed uppercase">
-                    This is an interactive simulation of the outbound Selar checkout response. Confirm successful testing receipt below.
-                  </p>
-
-                  <button
-                    onClick={handleSimulateSuccessfulPayment}
-                    className="w-full py-3 bg-[#10B981] text-[#040714] hover:bg-emerald-300 font-display text-[11px] font-bold tracking-widest uppercase rounded cursor-pointer transition-colors"
-                  >
-                    SIMULATE SECULAR SUCCESSFUL CHECKOUT
-                  </button>
-                </div>
-              )}
-
-              {/* State D: Built-in Account Activation Form (Requested Details) */}
+              {/* Identity Activation account form state */}
               {checkoutState === "activation_form" && (
-                <div className="max-w-md mx-auto">
-                  <div className="text-center mb-6">
-                    <ShieldCheck className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
-                    <h3 className="font-display text-sm text-white font-bold tracking-widest uppercase">
-                      PAYMENT CONFIRMED // SYSTEM ACTIVATION SHEET
-                    </h3>
-                    <p className="font-mono text-[9px] text-[#A0AEC0] uppercase mt-1">
-                      Provide activation parameters below to compile authentication key.
-                    </p>
-                  </div>
+                <div className="relative z-10">
+                  <h4 className="font-display text-sm text-white font-black tracking-widest uppercase text-center mb-1">
+                    ACCOUNT ACTIVATION PORTAL
+                  </h4>
+                  <p className="font-mono text-[9px] text-[#00F0FF] tracking-wider text-center block mb-6 uppercase">
+                    STEP 2 OF 3 : ENTER SUBSCRIBER KEY METRICS
+                  </p>
 
-                  <form onSubmit={handleSaveActivationCredentials} className="flex flex-col gap-4">
-                    {/* Unique Email address (All modules) */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-mono text-[9px] text-[#A0AEC0] uppercase tracking-wider flex items-center gap-1.5">
-                        <Mail className="w-3 h-3 text-[#00F0FF]" />
-                        <span>Registered Email Address *</span>
+                  <form onSubmit={handleSaveActivationCredentials} className="flex flex-col gap-5">
+                    <div className="flex flex-col gap-2">
+                      <label className="font-mono text-[10px] text-[#A0AEC0] uppercase tracking-wider flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-[#00F0FF]" />
+                        <span>Subscriber Email Address (REQUIRED) *</span>
                       </label>
                       <input
                         type="email"
                         required
-                        placeholder="ENTER REGISTERED EMAIL"
+                        placeholder="e.g. user@domain.com"
                         value={activationEmail}
                         onChange={(e) => setActivationEmail(e.target.value)}
-                        className="bg-[#040714] border border-[#1C64F2]/30 focus:border-[#00F0FF] rounded px-3 py-2 font-mono text-xs text-white outline-none w-full"
+                        className="bg-[#040714] border border-[#1C64F2]/30 focus:border-[#00F0FF] outline-none text-white text-xs px-3 py-2.5 rounded font-sans"
                       />
                     </div>
 
-                    {/* MT5 Code (Forex) */}
-                    {appNode.simulationType === "forex" && (
-                      <div className="flex flex-col gap-1.5">
-                        <label className="font-mono text-[9px] text-[#A0AEC0] uppercase tracking-wider flex items-center gap-1.5">
-                          <Lock className="w-3 h-3 text-[#00F0FF]" />
-                          <span>MT5 Trading ID *</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="ENTER MT5 TRADING ID"
-                          value={activationMt5}
-                          onChange={(e) => setActivationMt5(e.target.value)}
-                          className="bg-[#040714] border border-[#1C64F2]/30 focus:border-[#00F0FF] rounded px-3 py-2 font-mono text-xs text-white outline-none w-full"
-                        />
-                      </div>
-                    )}
+                    <div className="flex flex-col gap-2">
+                      <label className="font-mono text-[10px] text-[#A0AEC0] uppercase tracking-wider flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-purple-400" />
+                        <span>{getOptionalLabel()}</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. unique-identifier-token"
+                        value={activationIdentifier}
+                        onChange={(e) => setActivationIdentifier(e.target.value)}
+                        className="bg-[#040714] border border-[#1C64F2]/30 focus:border-[#00F0FF] outline-none text-white text-xs px-3 py-2.5 rounded font-sans"
+                      />
+                    </div>
 
-                    {/* Team Identifier (Football) */}
-                    {appNode.simulationType === "football" && (
-                      <div className="flex flex-col gap-1.5">
-                        <label className="font-mono text-[9px] text-[#A0AEC0] uppercase tracking-wider flex items-center gap-1.5">
-                          <Lock className="w-3 h-3 text-[#00F0FF]" />
-                          <span>Predictive Core Identification *</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="ASSIGN UNIQUE TEAM OR TICKET ID"
-                          value={activationTeam}
-                          onChange={(e) => setActivationTeam(e.target.value)}
-                          className="bg-[#040714] border border-[#1C64F2]/30 focus:border-[#00F0FF] rounded px-3 py-2 font-mono text-xs text-white outline-none w-full"
-                        />
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2.5 bg-[#040714] border border-[#1C64F2]/10 p-3 rounded text-[9.5px] uppercase font-mono text-[#A0AEC0] leading-snug">
+                      <CheckCircle className="w-4 h-4 text-[#10B981] flex-shrink-0" />
+                      <span>Upon activation, the credentials will be securely bounded and persistent inside the database schema registers.</span>
+                    </div>
 
                     <button
                       type="submit"
-                      className="w-full py-3 bg-gradient-to-r from-[#1C64F2] to-[#00F0FF] hover:opacity-90 font-display text-[10px] font-bold tracking-widest uppercase rounded cursor-pointer transition-opacity mt-2 text-white"
-                      id="btn-save-sub"
+                      className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-400 text-[#040714] font-display font-black text-xs tracking-[0.2em] uppercase rounded cursor-pointer transition-all hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] block"
+                      id="btn-register-activation"
                     >
-                      COMPILE ACTIVE SYSTEM HANDSHAKE
+                      ACTIVATE LICENSE SYSTEM
                     </button>
                   </form>
                 </div>
               )}
 
-              {/* State E: Activation Success Display */}
-              {checkoutState === "active_success" && savedUser && (
-                <div className="text-center py-6">
-                  <div className="w-12 h-12 rounded-full border border-emerald-400 bg-emerald-500/10 flex items-center justify-center mx-auto mb-4 text-emerald-400">
-                    <CheckCircle className="w-6 h-6 animate-pulse" />
-                  </div>
-                  <h3 className="font-display text-base text-white font-bold tracking-widest uppercase">
-                    Premium subscription validated &amp; active
-                  </h3>
-                  <p className="font-mono text-[10px] text-emerald-400 tracking-wide mt-2 uppercase">
-                    LICENSE STATUS: VERIFIED AUTHENTICATED
-                  </p>
-
-                  <div className="mt-6 bg-[#040714] p-4 rounded border border-emerald-400/20 max-w-md mx-auto text-left font-mono text-xs">
-                    <div className="flex justify-between border-b border-[#1C64F2]/10 pb-2 mb-2 text-[#A0AEC0] text-[9.5px]">
-                      <span>PARAMETER KEY</span>
-                      <span>SECURE RECORD</span>
-                    </div>
-                    <div className="flex justify-between py-1 text-white uppercase">
-                      <span>Assigned APP:</span>
-                      <span className="font-bold text-[#00F0FF]">{savedUser.appName}</span>
-                    </div>
-                    <div className="flex justify-between py-1 text-white">
-                      <span>Registered User:</span>
-                      <span className="font-bold">{savedUser.email}</span>
-                    </div>
-                    {savedUser.mt5Id && (
-                      <div className="flex justify-between py-1 text-white">
-                        <span>MT5 Trading ID:</span>
-                        <span className="font-bold text-yellow-400">{savedUser.mt5Id}</span>
-                      </div>
-                    )}
-                    {savedUser.teamName && (
-                      <div className="flex justify-between py-1 text-white uppercase">
-                        <span>Team/Ticket ID:</span>
-                        <span className="font-bold text-yellow-400">{savedUser.teamName}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between py-1 text-white uppercase">
-                      <span>Activation Date:</span>
-                      <span>{savedUser.subscribedAt}</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleDeleteSubscription}
-                    className="mt-6 px-4 py-2 bg-rose-500/10 border border-rose-500/30 hover:border-rose-500 hover:text-white rounded font-mono text-[9px] tracking-wider text-rose-400 uppercase transition-colors cursor-pointer"
-                  >
-                    WIPE LICENSE CACHE (HARD RESET)
-                  </button>
-                </div>
-              )}
-
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </div>
     </section>

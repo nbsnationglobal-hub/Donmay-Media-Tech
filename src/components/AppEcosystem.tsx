@@ -7,39 +7,56 @@ import React from "react";
 import { motion } from "motion/react";
 import { AppNode } from "../types";
 import { APPLICATIONS_DATA } from "../data";
-import { Cpu, Server, Network, ArrowRight, ShieldCheck, Zap } from "lucide-react";
+import { 
+  ArrowRight, 
+  Server, 
+  Video, 
+  TrendingUp, 
+  Flame, 
+  Wallet, 
+  Trophy,
+  Utensils 
+} from "lucide-react";
 
 interface AppEcosystemProps {
   onSelectApp: (app: AppNode) => void;
 }
 
 export default function AppEcosystem({ onSelectApp }: AppEcosystemProps) {
-  // Little helper to assign customized icons to simulators
+  // Assign customized premium icons to our proprietary apps
   const getAppIcon = (type: string) => {
     switch (type) {
-      case "forex":
-        return <Cpu className="w-5 h-5 text-[#00F0FF]" />;
-      case "football":
-        return <Network className="w-5 h-5 text-emerald-400" />;
-      case "media":
-        return <Zap className="w-5 h-5 text-purple-400" />;
-      case "security":
-        return <Server className="w-5 h-5 text-amber-500" />;
+      case "vora":
+        return <Video className="w-5 h-5 text-purple-400" />;
+      case "quantsync":
+        return <TrendingUp className="w-5 h-5 text-[#00F0FF]" />;
+      case "media_hero":
+        return <Flame className="w-5 h-5 text-orange-400" />;
+      case "budget":
+        return <Wallet className="w-5 h-5 text-emerald-400" />;
+      case "aura":
+        return <Trophy className="w-5 h-5 text-amber-500" />;
+      case "culina":
+        return <Utensils className="w-5 h-5 text-[#FF7A18]" />;
       default:
-        return <Cpu className="w-5 h-5 text-[#1C64F2]" />;
+        return <Server className="w-5 h-5 text-[#1C64F2]" />;
     }
   };
 
   const getBadgeColor = (type: string) => {
     switch (type) {
-      case "forex":
-        return "border-[#00F0FF]/30 text-[#00F0FF] bg-[#00F0FF]/5";
-      case "football":
-        return "border-emerald-500/30 text-emerald-400 bg-emerald-500/5";
-      case "media":
+      case "vora":
         return "border-purple-500/30 text-purple-400 bg-purple-500/5";
-      case "security":
+      case "quantsync":
+        return "border-[#00F0FF]/30 text-[#00F0FF] bg-[#00F0FF]/5";
+      case "media_hero":
+        return "border-orange-500/30 text-orange-400 bg-orange-500/5";
+      case "budget":
+        return "border-emerald-500/30 text-emerald-400 bg-emerald-500/5";
+      case "aura":
         return "border-amber-500/30 text-amber-400 bg-amber-500/5";
+      case "culina":
+        return "border-[#FF7A18]/30 text-[#FF7A18] bg-[#FF7A18]/5";
       default:
         return "border-[#1C64F2]/30 text-[#1C64F2] bg-[#1C64F2]/5";
     }
@@ -64,14 +81,14 @@ export default function AppEcosystem({ onSelectApp }: AppEcosystemProps) {
               <span>INFRASTRUCTURE NODE CLUSTER Map // RUNNING</span>
             </div>
             <h2 className="font-display font-black text-2xl md:text-4xl text-white tracking-widest uppercase">
-              Our Proprietary Ecosystem
+              OUR APPS
             </h2>
             <p className="font-sans text-sm text-[#A0AEC0] mt-3 uppercase tracking-wide max-w-xl">
               Click individual terminals below to initialize active live simulation grids and premium pipeline channels.
             </p>
           </div>
           <span className="font-mono text-[10px] text-[#A0AEC0] tracking-widest uppercase self-center md:self-end">
-            SYS_HEALTH: OPTIMAL // ONLINE_NODES: 05
+            SYS_HEALTH: OPTIMAL // ONLINE_NODES: {APPLICATIONS_DATA.length < 10 ? `0${APPLICATIONS_DATA.length}` : APPLICATIONS_DATA.length}
           </span>
         </div>
 
@@ -106,7 +123,20 @@ export default function AppEcosystem({ onSelectApp }: AppEcosystemProps) {
                 <span className="font-mono text-[9px] text-[#A0AEC0]/70 uppercase tracking-widest mt-1 block">
                   {app.subtitle}
                 </span>
-                <p className="font-sans text-xs text-[#A0AEC0] mt-3 leading-relaxed uppercase group-hover:text-white transition-colors line-clamp-2">
+
+                {/* Micro-Tags Badges */}
+                <div className="flex flex-wrap gap-1.5 mt-3">
+                  {app.microTags && app.microTags.map((tag, tIdx) => (
+                    <span 
+                      key={tIdx} 
+                      className={`text-[8px] font-mono font-semibold px-2 py-0.5 rounded border uppercase tracking-wider ${getBadgeColor(app.simulationType)}`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <p className="font-sans text-xs text-[#A0AEC0] mt-4 leading-relaxed uppercase group-hover:text-white transition-colors line-clamp-3">
                   {app.shortDescription}
                 </p>
               </div>

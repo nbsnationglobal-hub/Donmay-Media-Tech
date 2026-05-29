@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -6,6 +6,8 @@
   --font-display: "Orbitron", sans-serif;
   --font-space: "Space Grotesk", sans-serif;
   --font-mono: "Roboto Mono", monospace;
+  --font-sora: "Sora", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
   
   --color-brand-bg: #040714;
   --color-brand-grid: #080B1C;

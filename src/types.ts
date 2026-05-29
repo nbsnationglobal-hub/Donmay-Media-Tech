@@ -7,11 +7,13 @@ export interface AppNode {
   id: string;
   title: string;
   subtitle: string;
-  shortDescription: string;
+  shortDescription: string; // e.g. the summary
   longDescription: string;
   architectureStack: string[];
   capabilities: string[];
-  simulationType: "forex" | "football" | "media" | "security" | "cloud";
+  simulationType: "vora" | "quantsync" | "media_hero" | "budget" | "aura" | "culina";
+  microTags: string[];
+  targetUrl: string;
 }
 
 export interface ServiceItem {

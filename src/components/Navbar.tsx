@@ -65,9 +65,10 @@ export default function Navbar({ onNavClick, activeSection, onStartProjectClick 
 
   const menuItems = [
     { label: "Home", id: "hero-section" },
-    { label: "Our Apps", id: "app-ecosystem" },
+    { label: "OUR APPS", id: "app-ecosystem" },
     { label: "Services", id: "services-section" },
-    { label: "Pricing", id: "pricing-section" }
+    { label: "About Us", id: "about-section" },
+    { label: "Contact", id: "contact-section" }
   ];
 
   return (
@@ -138,7 +139,7 @@ export default function Navbar({ onNavClick, activeSection, onStartProjectClick 
             className="px-5 py-2.5 font-display text-xs tracking-widest text-white rounded bg-gradient-to-r from-[#1C64F2] via-[#10B981] to-[#00F0FF] bg-[length:200%_auto] hover:bg-right transition-all duration-500 font-bold hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] border border-[#00F0FF]/25 cursor-pointer shadow-lg uppercase"
             id="btn-nav-action"
           >
-            START PROJECT
+            GET A CUSTOM QUOTE
           </motion.button>
         </div>
       </div>

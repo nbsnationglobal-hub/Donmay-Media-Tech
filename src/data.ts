@@ -7,141 +7,183 @@ import { AppNode, ServiceItem } from "./types";
 
 export const APPLICATIONS_DATA: AppNode[] = [
   {
-    id: "forex-intel",
-    title: "Forex Market Intelligence",
-    subtitle: "MT5 Algorithmic Core",
-    shortDescription: "Automated trading file brain integrating with MT5 for real-time market learning and reporting via structured CSV data.",
-    longDescription: "An advanced, sub-millisecond execution engine designed for MetaTrader 5 (MT5). The system analyzes multi-pair market flows synchronously, generates robust statistical reports, and outputs optimized CSV data streams to power downstream intelligence layers securely.",
-    architectureStack: ["MQL5", "TypeScript / Node", "Python Pandas", "REST Proxy Gateway", "CSV File Store"],
+    id: "vora",
+    title: "Vora Studio // AI Cinema & Video Generator",
+    subtitle: "AI Video System",
+    shortDescription: "Instantly turn music tracks or scripts into high-quality music videos, films, and animations. Upload your photo to keep your exact face consistent across every scene.",
+    longDescription: "Instantly turn music tracks or scripts into high-quality music videos, films, and animations. Upload any high-resolution photo to keep your exact facial features fully consistent across every scene.",
+    architectureStack: ["Gemini Vision", "Vite / React", "Stable Video API", "Node.js Web Server"],
     capabilities: [
-      "Continuous MT5 Active Feed Synchronization",
-      "Adaptive Micro-Slip Protection Algorithms",
-      "Automated CSV Backup & Ledger Database",
-      "Multi-Asset Mathematical Probability Filter"
+      "Instantly turn audio tracks or ideas into full videos",
+      "Upload your photo to keep your personal face consistent in every scene",
+      "Create high-quality cinematic results and custom animations on any script",
+      "Full 4K resolutions suitable for social media or professional use"
     ],
-    simulationType: "forex"
+    simulationType: "vora",
+    microTags: ["Core: Gemini Vision", "Output: 4K Cinematic"],
+    targetUrl: "https://aistudio.google.com/apps/c65074cc-b709-4349-9b32-6f3fea46e067?showPreview=true&showAssistant=true"
   },
   {
-    id: "predictive-analytics",
-    title: "Predictive Analytics Core",
-    subtitle: "Football Odds Processor",
-    shortDescription: "High-accuracy match probability analysis and custom ticket building platform.",
-    longDescription: "A state-of-the-art sports science modeling suite utilizing Poisson distribution matrices, historical performance indexes, and actual dynamic betting margins to generate high-probability forecasts and custom ticket architectures.",
-    architectureStack: ["React 19 & Vite", "Tailwind CSS Engine", "Poisson Distribution Models", "Local Data Store"],
+    id: "quantsync",
+    title: "QuantSync // Smart Forex Trading Terminal",
+    subtitle: "MetaTrader 5 Client",
+    shortDescription: "An advanced trading dashboard built for MetaTrader 5 (MT5). Tracks market patterns, records your trading history automatically, and connects live to the cloud.",
+    longDescription: "An advanced trading dashboard built for MetaTrader 5 (MT5). Tracks market patterns, records your trading history automatically, and connects live to a secure cloud backend.",
+    architectureStack: ["MQL5 EA Bridge", "Express / Firestore", "Volex Pricing Core", "NodeJS Proxy"],
     capabilities: [
-      "Dynamic Live Odds Poisson Calculator",
-      "Interactive Match Accumulator Builder",
-      "Detailed Dynamic Team Form Overlays",
-      "Custom Risk-to-Reward Margin Optimization"
+      "Seamless connection to MetaTrader 5 (MT5)",
+      "Auto-records all trading activities in real-time",
+      "Monitors multiple currency pairs and indexes simultaneously",
+      "Secure cloud database syncing to protect your trading history"
     ],
-    simulationType: "football"
+    simulationType: "quantsync",
+    microTags: ["Bridge: MQL5 EA", "Engine: Express / Firestore"],
+    targetUrl: "https://aistudio.google.com/apps/a3bbd08f-f0a8-4d1d-ad0d-77188e518b6b?showPreview=true&showAssistant=true"
   },
   {
-    id: "sound-synthesis",
-    title: "Quantum Sound Synthesis",
-    subtitle: "Next-Gen Audio Forge",
-    shortDescription: "High-definition soundscape synthesis tool leveraging AI for commercial audio workflows.",
-    longDescription: "An interactive soundboard and generative waveform synthesizer tailored for advertising filmmakers, content developers, and visual editors, rendering state-of-the-art acoustics in milliseconds.",
-    architectureStack: ["Web Audio API", "WebAssembly Engine", "Audio Worklets", "Vite Framework"],
+    id: "media-hero",
+    title: "Media Hero // Social Media Growth Co-Pilot",
+    subtitle: "Distribution Engine",
+    shortDescription: "Automatically fixes your posts to prevent shadowbans, extracts trending hashtags, and rewrites your content to go viral on TikTok, Instagram, and YouTube.",
+    longDescription: "Automatically fixes your posts to prevent shadowbans, extracts trending hashtags, and rewrites your content to go viral on TikTok, Instagram, and YouTube.",
+    architectureStack: ["Imagen & Veo Core", "Tailwind Engine", "Viral Pattern Analytics", "JSON CDN Store"],
     capabilities: [
-      "Dynamic Stereo Waveform Pipeline",
-      "Lossless WAV Sample Pack Export",
-      "Sub-bass Layer Harmonic Resonator",
-      "Creative Soundscape Seed Variations"
+      "Ensures shadowban protection before you publish content",
+      "Finds current viral hashtags and trending triggers instantly",
+      "AI Copywriter rewrites titles and post hooks for maximum views",
+      "Provides estimated reach scores before uploading"
     ],
-    simulationType: "media"
+    simulationType: "media_hero",
+    microTags: ["Models: Imagen & Veo", "Audit: Algorithm Guard"],
+    targetUrl: "https://aistudio.google.com/apps/4c1f953b-d3b9-4683-ae4b-7ce240bcbf45?showPreview=true&showAssistant=true"
   },
   {
-    id: "crypto-sentinel",
-    title: "Cryptographic Sentinel",
-    subtitle: "Decentralized Access Proxy",
-    shortDescription: "Enterprise edge proxy server with ironclad cryptographic handshake authenticators.",
-    longDescription: "A solid, zero-trust cryptographic edge gate built for high-throughput media servers. Manages bulletproof authorization handshakes, active IP rotate policies, and telemetry verification metrics.",
-    architectureStack: ["Rust Core", "gRPC Handshakes", "AES-256-GCM Encryption", "React Monitoring"],
+    id: "budget-hero",
+    title: "MyBudgetHero // Smart Finance & Project Tracker",
+    subtitle: "Financial Intelligence",
+    shortDescription: "Easily manage your daily personal spending alongside major business project budgets, material invoices, and contractor costs in multiple currencies.",
+    longDescription: "Easily manage your daily personal spending alongside major business project budgets, material invoices, and contractor costs in multiple currencies.",
+    architectureStack: ["Supabase Cloud DB", "Bento Cyber-Slate GUI", "SaaS Billing Core", "React 18 / Vite"],
     capabilities: [
-      "Micro-latency Routing Edge Gateway",
-      "Instant Credential Multi-Shuffle Protocol",
-      "Adaptive Request Flooding Limiter",
-      "Visual Attack Node Interactive Vector Map"
+      "Tracks personal daily spending together with business assets",
+      "Manage contractor costs, invoices, and material receipts on site",
+      "Supports multi-currency conversions automatically",
+      "Secure backend ledger backup so you never lose financial data"
     ],
-    simulationType: "security"
+    simulationType: "budget",
+    microTags: ["DB: Supabase Cloud", "UI: Bento Cyber-Slate"],
+    targetUrl: "https://aistudio.google.com/apps/cf1cd6ff-303c-4555-9a29-b564840ac637?showPreview=true&showAssistant=true"
   },
   {
-    id: "bento-cdn",
-    title: "Bento CDN Engine",
-    subtitle: "Global Video Cache Node",
-    shortDescription: "Super-optimized local routing caching solution for high-density 4K video streamers.",
-    longDescription: "An intelligent media caching matrix that completely routes around congestion nodes. Leverages smart WebRTC local pairing to distribute raw chunk files with zero playback delay.",
-    architectureStack: ["Go Routing Core", "WebRTC Peer-to-Peer", "Redis Cache Indexer", "Responsive UI Panel"],
+    id: "aura-predictor",
+    title: "Aura Predictor Pro // Advanced Football Analytics Suite",
+    subtitle: "Sports Value Suite",
+    shortDescription: "Uses smart statistics and team injury data to find true value in soccer matches and instantly generates realistic accumulator betting slips.",
+    longDescription: "Uses smart statistics and team injury data to find true value in soccer matches and instantly generates realistic accumulator betting slips.",
+    architectureStack: ["Strength Modifiers", "Poisson Distribution", "Vite / React Routing", "Tailwind GUI"],
     capabilities: [
-      "Autonomous Multi-Thread Video Chunking",
-      "Intelligent Region Geo-Routing Optimizer",
-      "Real-time Cache Hit/Miss Telemetry Grid",
-      "Dynamic Image and Video Asset Compress"
+      "Uses smart algorithms to evaluate soccer statistics and team layouts",
+      "Monitors live player injury data and dynamic roster adjustments",
+      "Instantly generates realistic values and accumulator betting slips",
+      "Includes strict anti-risk variables to calculate true stakes"
     ],
-    simulationType: "cloud"
+    simulationType: "aura",
+    microTags: ["Alg: Squad Strength Modifier", "Slip: Combo Realism"],
+    targetUrl: "https://aistudio.google.com/apps/fc2ac243-09fb-4217-9d89-e9e482cd4903?showPreview=true&showAssistant=true"
+  },
+  {
+    id: "culina",
+    title: "Culina // Global Recipe & AI Cooking Companion",
+    subtitle: "AI Culinary Assistant",
+    shortDescription: "Explore thousands of traditional African and world recipes, use an interactive AI kitchen assistant for step-by-step cooking, and find nearby luxury restaurants.",
+    longDescription: "Explore thousands of traditional African and world recipes, use an interactive AI kitchen assistant for step-by-step cooking, and find nearby luxury restaurants.",
+    architectureStack: ["Sora Geometric Core", "CookAssistant LLM", "Google Maps Places", "React / Tailwind"],
+    capabilities: [
+      "Explore hundreds of traditional African and world recipes",
+      "Interactive Step-by-Step cooking helper with custom sound timers",
+      "Instant sourcing for nearby luxury restaurants and direct quality ingredient vendors"
+    ],
+    simulationType: "culina",
+    microTags: ["Core: Sora Geometric", "Engine: CookAssistant AI"],
+    targetUrl: "https://culina.donmay.africa"
   }
 ];
 
 export const SERVICES_DATA: ServiceItem[] = [
   {
-    id: "dev-service",
-    title: "Software & Web Development",
-    subtitle: "Corporate Systems & Custom SaaS",
-    category: "development",
-    description: "Tailor-made web applications, high-performance SaaS MVPs, and premium high-converting corporate layouts styled according to precise specifications.",
+    id: "targeted-advertising",
+    title: "Targeted Advertising (Targeted Ads Services)",
+    subtitle: "Data-Driven Hyper Reach",
+    category: "marketing",
+    description: "Launch highly optimized, data-driven promotion campaigns built specifically to expand your digital page authority, create new conversion leads, and scale brand product sales. Features advanced laser-focused audience filters.",
     deliverables: [
-      "Production-Ready React & Node Architectures",
-      "Stripe or Selar Checkout Systems API Integration",
-      "Extremely Clean, Dynamic Visual Layouts",
-      "Comprehensive Database Schemas & Secure API Gateways"
+      "Advanced Demographic Filtering: Geolocation targeting (specific cities/states)",
+      "Precise Age Group & Gender calibration",
+      "Professional Targeting: Industry matching, specific job roles, and corporate seniority",
+      "Dynamic ad copywriting & creative multi-channel design arrays",
+      "Fully integrated tracking pixels (Meta, Google, TikTok) & growth dashboard logs"
     ],
-    priceRange: "From $1,500 USD",
-    deliveryTime: "14 - 21 Days"
+    priceRange: "From $500 USD",
+    deliveryTime: "5 - 10 Days"
   },
   {
-    id: "audio-service",
-    title: "Next-Gen Audio Design",
-    subtitle: "Soundtracks & Sonic Identity",
-    category: "audio",
-    description: "Acoustically superior soundtracks, commercial-grade ambient loops, and custom-made celebration anthems featuring professional standard engineering.",
+    id: "social-media",
+    title: "Social Media Management",
+    subtitle: "Full-Service Page Optimization",
+    category: "marketing",
+    description: "Secure consistent global brand growth with our comprehensive, automated management arrays. Includes profile structure optimization, consistent posting schedules, and active audience engagement.",
     deliverables: [
-      "Lossless Stereo Master Files (WAV / FLAC)",
-      "100% Comprehensive Commercial Exploitation Rights",
-      "Seamless Looping Background Tracks",
-      "Bespoke High-Impact Sound Logo Stingers"
+      "Strategic content calendar & automated scheduling matrices",
+      "Daily high-converting copy, trending hashtag extraction, and hooks",
+      "Direct audience response management & sentiment monitoring",
+      "Monthly comprehensive performance audits and shadowban guard scans"
     ],
-    priceRange: "From $450 USD",
-    deliveryTime: "4 - 7 Days"
+    priceRange: "From $450 USD / Month",
+    deliveryTime: "Monthly Retention"
   },
   {
-    id: "media-service",
-    title: "Creative Media Studio",
-    subtitle: "Cinematics & Cartoon Visuals",
+    id: "video-commercials",
+    title: "Video Commercials (Advertising)",
+    subtitle: "High-Impact Commercial Suite",
     category: "media",
-    description: "Highly engaging cartoon animations, premium commercials, advanced transition effects, and cohesive digital assets optimized for modern brand engagement.",
+    description: "Promote key corporate events, announce groundbreaking new product releases, and scale brand visibility with custom high-production commercial edits.",
     deliverables: [
-      "Custom Crafted Character Animation Sequences",
-      "Pro Color correction, Sound Overlay & Splicing",
-      "Ultra-Crisp 4K UHD Ultra-High Framerate Renders",
-      "Platform-specific aspect ratio optimizations"
+      "Complete visual narrative planning & commercial script writing",
+      "Cinematic composition, royalty-free licensing, & sound master engineering",
+      "Targeted cuts optimized for social platforms (YouTube, Instagram Reels, TikTok)",
+      "Completed 4K ultra-resolutions with high-retention pacing models"
     ],
-    priceRange: "From $800 USD",
+    priceRange: "From $600 USD",
     deliveryTime: "7 - 14 Days"
   },
   {
-    id: "marketing-service",
-    title: "Growth Marketing Core",
-    subtitle: "Ad Funnels & Algorithm Optimization",
-    category: "marketing",
-    description: "Data-focused advertisement setups, strategic audience analysis, hyper-optimized growth loops, and fully managed brand authorities across socials.",
+    id: "cartoon-animation",
+    title: "Cartoon Animation",
+    subtitle: "High-Fidelity Cartoon & Storytelling",
+    category: "media",
+    description: "Communicate complex concepts and build deep viewer loyalty with creative storytelling cartoon animations and high-fidelity custom animated characters.",
     deliverables: [
-      "High-converting visual copies & texts",
-      "Detailed pixel tracking and audience filter sets",
-      "Comprehensive weekly optimization review",
-      "Automated growth pipeline systems"
+      "Custom cartoon character concepts and scene background vectors",
+      "Storyboard orchestration and custom storyboard layout drafts",
+      "Premium character lip-sync matching and acting movement animations",
+      "Bespoke sound effects & commercial broadcast license certificates"
     ],
-    priceRange: "From $600 USD / Month",
-    deliveryTime: "Monthly Retention"
+    priceRange: "From $750 USD",
+    deliveryTime: "10 - 20 Days"
+  },
+  {
+    id: "video-editing",
+    title: "Video Editing",
+    subtitle: "Professional Post-Production Splicing",
+    category: "media",
+    description: "Transform raw footage into professional, high-retention stories. Features premium pacing adjustments, color science matching, voice cleaning, and cinematic grading.",
+    deliverables: [
+      "High-retention pace editing conforming to digital algorithms",
+      "Professional color grading matching cinema standards (LUT application)",
+      "Audio enhancement, noise extraction, sound effect stacking, and subtitles",
+      "Multi-camera sync engineering and motion graphics titles"
+    ],
+    priceRange: "From $300 USD",
+    deliveryTime: "3 - 7 Days"
   }
 ];
