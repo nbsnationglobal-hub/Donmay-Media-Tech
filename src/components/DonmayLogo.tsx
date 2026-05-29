@@ -4,6 +4,7 @@
  */
 
 import React from "react";
+import ThreeLogoCanvas from "./ThreeLogoCanvas";
 
 interface DonmayLogoSymbolProps {
   className?: string;
@@ -100,8 +101,13 @@ interface DonmayLogoProps {
 export default function DonmayLogo({ className = "", symbolSize = 34, compact = false }: DonmayLogoProps) {
   return (
     <div className={`flex items-center gap-3.5 select-none ${className}`}>
-      {/* High Fidelity SVG Symbol */}
-      <DonmayLogoSymbol size={symbolSize} className="flex-shrink-0 transition-transform duration-300 group-hover:scale-105" />
+      {/* High Fidelity 3D Extruded Symbol with Slow Float and Interactive Mouse Physics */}
+      <ThreeLogoCanvas
+        size={symbolSize + 6} // Give slightly more padding to allow 3D rotations without clipping
+        scaleFactor={(symbolSize + 6) / 50} // Beautiful proportionate responsive scaling to completely fill bounding box
+        cameraZ={65} // Significantly closer along Z-axis for clear framing
+        className="flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+      />
 
       {/* Corporate Typography Lockup */}
       {!compact && (
