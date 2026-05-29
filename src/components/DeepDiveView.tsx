@@ -831,7 +831,7 @@ export default function DeepDiveView({ appNode, onBack }: DeepDiveViewProps) {
                       <p className="font-sans text-xs text-slate-350 bg-[#080B1C] border border-[#1C64F2]/15 p-3 rounded mt-4 max-w-sm uppercase leading-relaxed text-[#A0AEC0]">
                         Identity: <span className="text-white font-bold">{savedUser?.email}</span>
                         {savedUser?.mt5Id ? (
-                          <> <br /> Account MT5 ID: <span className="text-white font-bold">{savedUser.mt5Id}</span></>
+                          <> <br /> {appNode.simulationType === "quantsync" ? "Account MT5 ID" : "BRAND NAME"}: <span className="text-white font-bold uppercase">{savedUser.mt5Id}</span></>
                         ) : savedUser?.teamName ? (
                           <> <br /> {appNode.simulationType === "culina" ? "Culinary Profile Mode" : "Variable Tag"}: <span className={`${appNode.simulationType === "culina" ? "text-[#FF8A35]" : "text-[#00F0FF]"} font-bold`}>{savedUser.teamName}</span></>
                         ) : null}

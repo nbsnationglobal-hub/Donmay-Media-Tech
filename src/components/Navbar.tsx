@@ -6,6 +6,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion, useMotionValue, useSpring } from "motion/react";
 import { ShieldCheck, Cpu } from "lucide-react";
+import DonmayLogo from "./DonmayLogo";
 
 interface NavbarProps {
   onNavClick: (sectionId: string) => void;
@@ -67,6 +68,7 @@ export default function Navbar({ onNavClick, activeSection, onStartProjectClick 
     { label: "Home", id: "hero-section" },
     { label: "OUR APPS", id: "app-ecosystem" },
     { label: "Services", id: "services-section" },
+    { label: "SOUND LAB", id: "services-soundlab" },
     { label: "About Us", id: "about-section" },
     { label: "Contact", id: "contact-section" }
   ];
@@ -92,18 +94,7 @@ export default function Navbar({ onNavClick, activeSection, onStartProjectClick 
           className="flex items-center gap-3 cursor-pointer group select-none"
           id="nav-logo"
         >
-          <div className="relative flex items-center justify-center w-8 h-8 border border-[#1C64F2]/50 group-hover:border-[#00F0FF] rounded rotate-45 bg-[#080B1C] transition-colors overflow-hidden">
-            <Cpu className="w-4 h-4 text-[#1C64F2] group-hover:text-[#00F0FF] transition-colors -rotate-45" />
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#1C64F2]/10 to-[#00F0FF]/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-display text-[#FFFFFF] text-sm md:text-base font-bold tracking-[0.25em] leading-none">
-              DONMAY
-            </span>
-            <span className="font-mono text-[8px] tracking-[0.45em] text-[#00F0FF]">
-              MEDIA &amp; TECH
-            </span>
-          </div>
+          <DonmayLogo symbolSize={34} />
         </div>
 
         {/* Center navigation links */}

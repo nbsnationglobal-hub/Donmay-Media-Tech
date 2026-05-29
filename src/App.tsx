@@ -14,6 +14,7 @@ import AboutAndMetrics from "./components/AboutAndMetrics";
 import ContactCanvas from "./components/ContactCanvas";
 import Footer from "./components/Footer";
 import LaunchAnimation from "./components/LaunchAnimation";
+import AcousticSynthesisLab from "./components/AcousticSynthesisLab";
 import { AppNode } from "./types";
 import { APPLICATIONS_DATA } from "./data";
 
@@ -26,10 +27,11 @@ export default function App() {
 
   const [activeSection, setActiveSection] = useState<string>("hero-section");
   const [selectedApp, setSelectedApp] = useState<AppNode | null>(null);
+  const [isAcousticLabActive, setIsAcousticLabActive] = useState<boolean>(false);
 
   // Trigger scroll-bound navigation highlight
   useEffect(() => {
-    if (!isIntroComplete || selectedApp) return;
+    if (!isIntroComplete || selectedApp || isAcousticLabActive) return;
 
     const handleScroll = () => {
       const scrollPosition = window.scrollY + 200;
@@ -50,12 +52,21 @@ export default function App() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isIntroComplete, selectedApp]);
+  }, [isIntroComplete, selectedApp, isAcousticLabActive]);
 
   // Handle smooth scroll clicks
   const handleNavClick = (sectionId: string) => {
-    // If we have an active app deep dive, clicking any navigation link clears the deep dive
+    // If we have an active app deep dive or acoustic lab, clicking any navigation link clears them
     setSelectedApp(null);
+    
+    if (sectionId === "services-soundlab") {
+      setIsAcousticLabActive(true);
+      setActiveSection("services-soundlab");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    setIsAcousticLabActive(false);
     setActiveSection(sectionId);
 
     // Give it a tiny tick to re-render standard pages and then scroll
@@ -92,7 +103,7 @@ export default function App() {
             {/* 1. Header Navigation */}
             <Navbar 
               onNavClick={handleNavClick} 
-              activeSection={selectedApp ? "app-ecosystem" : activeSection}
+              activeSection={selectedApp ? "app-ecosystem" : isAcousticLabActive ? "services-soundlab" : activeSection}
               onStartProjectClick={handleStartProject}
             />
 
@@ -118,6 +129,39 @@ export default function App() {
                           if (el) el.scrollIntoView({ behavior: "instant" });
                         }, 50);
                       }} 
+                    />
+                  </motion.div>
+                ) : isAcousticLabActive ? (
+                  <motion.div
+                    key="acoustic-lab"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    transition={{ duration: 0.45 }}
+                    className="w-full"
+                  >
+                    <AcousticSynthesisLab 
+                      onBackToHome={() => setIsAcousticLabActive(false)}
+                      onEnrollContract={(contract) => {
+                        const saved = localStorage.getItem("donmay_active_contracts");
+                        let current: any[] = [];
+                        if (saved) {
+                          try {
+                            current = JSON.parse(saved);
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }
+                        const next = [contract, ...current];
+                        localStorage.setItem("donmay_active_contracts", JSON.stringify(next));
+                        setIsAcousticLabActive(false);
+                        
+                        // Scroll smoothly to active nodes monitor area after enrollment
+                        setTimeout(() => {
+                          const el = document.getElementById("services-section");
+                          if (el) el.scrollIntoView({ behavior: "smooth" });
+                        }, 120);
+                      }}
                     />
                   </motion.div>
                 ) : (
@@ -146,7 +190,7 @@ export default function App() {
                     <ServiceCatalog />
 
                     {/* Component F: About Us & Live Data Telemetry Metrics (Bento Grid) */}
-                    <AboutAndMetrics />
+                    <AboutAndMetrics onOpenAcousticLab={() => handleNavClick("services-soundlab")} />
 
                     {/* Component G: Get in Touch Premium Contact Canvas */}
                     <ContactCanvas />
@@ -165,6 +209,7 @@ export default function App() {
                 }
               }}
               onNavClick={handleNavClick}
+              onOpenAcousticLab={() => handleNavClick("services-soundlab")}
             />
 
             {/* Floating Premium WhatsApp Support Button */}

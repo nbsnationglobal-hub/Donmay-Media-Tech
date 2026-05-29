@@ -5,13 +5,15 @@
 
 import React, { useState } from "react";
 import { Cpu, Twitter, Linkedin, Instagram, Github, Facebook, ArrowUp, Check, Send } from "lucide-react";
+import DonmayLogo from "./DonmayLogo";
 
 interface FooterProps {
   onSelectApp?: (appId: string) => void;
   onNavClick?: (sectionId: string) => void;
+  onOpenAcousticLab?: () => void;
 }
 
-export default function Footer({ onSelectApp, onNavClick }: FooterProps) {
+export default function Footer({ onSelectApp, onNavClick, onOpenAcousticLab }: FooterProps) {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,18 +54,7 @@ export default function Footer({ onSelectApp, onNavClick }: FooterProps) {
               onClick={() => onNavClick?.("hero-section")}
               className="flex items-center gap-3 cursor-pointer group w-fit"
             >
-              <div className="relative flex items-center justify-center w-8 h-8 border border-[#1C64F2]/50 group-hover:border-[#00F0FF] rounded rotate-45 bg-[#080B1C] transition-colors overflow-hidden">
-                <Cpu className="w-4 h-4 text-[#1C64F2] group-hover:text-[#00F0FF] transition-colors -rotate-45" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#1C64F2]/10 to-[#00F0FF]/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-display text-[#FFFFFF] text-sm md:text-base font-bold tracking-[0.25em] leading-none">
-                  DONMAY
-                </span>
-                <span className="font-mono text-[8px] tracking-[0.45em] text-[#00F0FF] mt-0.5">
-                  MEDIA &amp; TECH
-                </span>
-              </div>
+              <DonmayLogo symbolSize={34} />
             </div>
 
             {/* Inspiring Subtitle */}
@@ -184,7 +175,7 @@ export default function Footer({ onSelectApp, onNavClick }: FooterProps) {
                 Software Engineering
               </button>
               <button
-                onClick={() => onNavClick?.("services-section")}
+                onClick={() => onOpenAcousticLab ? onOpenAcousticLab() : onNavClick?.("services-section")}
                 className="font-mono text-[10.5px] uppercase tracking-wider text-[#A0AEC0] hover:text-[#00F0FF] transition-colors text-left"
               >
                 Next-Gen Audio Design

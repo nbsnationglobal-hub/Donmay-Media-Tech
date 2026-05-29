@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import DonmayLogo from "./DonmayLogo";
 
 interface LaunchAnimationProps {
   onComplete: () => void;
@@ -192,23 +193,22 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
               transition={{ duration: 1.2, ease: "easeOut" }}
               className="flex flex-col items-center"
             >
-              {/* Virtual Hex Core */}
-              <div className="w-12 h-12 mb-6 flex items-center justify-center border-2 border-[#1C64F2] rotate-45 relative overflow-hidden bg-[#080B1C]">
-                <div className="w-6 h-6 bg-[#00F0FF] -rotate-45 font-display flex items-center justify-center font-bold text-[#040714] text-xs">
-                  D
-                </div>
+              {/* Genuine Donmay Soundways Symbol */}
+              <div className="mb-6 flex items-center justify-center relative">
+                <div className="absolute inset-x-0 -inset-y-2 bg-[#00F0FF]/10 filter blur-xl rounded-full animate-pulse pointer-events-none" />
+                <DonmayLogo symbolSize={76} compact={true} />
               </div>
 
               {/* Company Logo Text */}
               <h1 className="font-display text-2xl md:text-4xl font-extrabold tracking-[0.35em] text-white">
                 DONMAY
               </h1>
-              <span className="font-mono text-xs md:text-sm tracking-[0.5em] text-[#00F0FF] mt-3 uppercase">
+              <span className="font-mono text-xs md:text-sm tracking-[0.5em] text-[#00F0FF] mt-3 uppercase font-semibold">
                 MEDIA &amp; TECHNOLOGY
               </span>
 
               {/* Sub-line */}
-              <p className="font-sans text-xs tracking-widest text-[#A0AEC0] mt-6 max-w-md line-clamp-2 uppercase">
+              <p className="font-sans text-xs tracking-widest text-[#A0AEC0] mt-6 max-w-md line-clamp-2 uppercase leading-relaxed text-center">
                 ENGINEERING THE FUTURE OF SOFTWARE &amp; MEDIA EXECUTION
               </p>
 

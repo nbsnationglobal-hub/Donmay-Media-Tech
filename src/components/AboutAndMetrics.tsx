@@ -7,7 +7,11 @@ import React from "react";
 import { motion } from "motion/react";
 import { Info, Layers, Users, Globe, Activity, Terminal, Shield, Share2, Music, Film } from "lucide-react";
 
-export default function AboutAndMetrics() {
+interface AboutAndMetricsProps {
+  onOpenAcousticLab: () => void;
+}
+
+export default function AboutAndMetrics({ onOpenAcousticLab }: AboutAndMetricsProps) {
   return (
     <section 
       id="about-section" 
@@ -66,6 +70,14 @@ export default function AboutAndMetrics() {
                 <p className="font-sans text-xs text-[#A0AEC0] uppercase tracking-wide leading-relaxed font-medium">
                   We explicitly highlight our custom music and soundtrack production services. Our studio composes high-end, tailored audio projects ranging from cinematic modeling scoring for commercial films and movies, to deeply personal custom soundtracks for monumental celebrations such as weddings, birthdays, and anniversaries with full commercial licensing rights.
                 </p>
+                
+                <button
+                  onClick={onOpenAcousticLab}
+                  className="mt-5 w-full py-2.5 rounded border border-purple-500/30 hover:border-purple-400 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 font-mono text-[9.5px] uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Music className="w-3.5 h-3.5" />
+                  <span>OPEN MUSIC PROTOCOL →</span>
+                </button>
               </div>
               <div className="font-mono text-[9px] text-purple-400 tracking-widest uppercase mt-6 pt-4 border-t border-[#1C64F2]/10">
                 100% EXCLUSIVE LICENSE
