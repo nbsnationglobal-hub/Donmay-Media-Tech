@@ -21,6 +21,8 @@ interface ThreeLogoCanvasProps {
   spotlightIntensity?: number; // Floating spotlight spot strength
   cameraZ?: number; // Custom camera distance along Z-axis
   showText?: boolean; // Support toggleable 3D typography
+  assetMode?: string; // Custom asset mode (e.g. "full" or "D", "O", "N", ...)
+  forceFrontSnap?: boolean; // Force front snap look for export quality
 }
 
 // ==========================================
@@ -195,7 +197,7 @@ function createLetterShape(char: string): THREE.Shape {
   return shape;
 }
 
-function create3DWord(text: string, size: number, height: number, material: THREE.Material): THREE.Group {
+function create3DWord(text: string, size: number, height: number, material: THREE.Material | THREE.Material[]): THREE.Group {
   const wordGroup = new THREE.Group();
   let currentX = 0;
   const scale = size / 10;
@@ -249,6 +251,8 @@ export default function ThreeLogoCanvas({
   spotlightIntensity = 22,
   cameraZ = 70,
   showText = false,
+  assetMode = "full",
+  forceFrontSnap = false,
 }: ThreeLogoCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -287,6 +291,11 @@ export default function ThreeLogoCanvas({
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
+    if (assetMode && assetMode !== "full") {
+      renderer.setClearColor(0x040714, 1.0);
+    } else {
+      renderer.setClearColor(0x000000, 0.0);
+    }
     rendererRef.current = renderer;
 
     // Attach to DOM
@@ -387,82 +396,110 @@ export default function ThreeLogoCanvas({
 
     // Center adjustment group
     const logoGroup = new THREE.Group();
-    // Shift slightly left to visually balance the text/symbol centering
     logoGroup.position.set(0, 0, 0);
 
-    // a. Equalizer Bars (Capsules for perfect round 3D look)
-    const eqParams = [
-      { x: -31, h: 28 },
-      { x: -24, h: 44 },
-      { x: -17, h: 60 },
-      { x: -10, h: 36 },
-    ];
+    let letterMesh: THREE.Group | null = null;
 
-    eqParams.forEach((param) => {
-      // Capsules are centered on origin, length is the cylindrical height, radius is thickness
-      const radius = 1.95;
-      const length = param.h - radius * 2;
-      const eqGeom = new THREE.CapsuleGeometry(radius, length, 8, 24);
-      const eqMesh = new THREE.Mesh(eqGeom, eqMaterial);
-      eqMesh.position.set(param.x, 0, 0);
-      logoGroup.add(eqMesh);
-    });
+    if (assetMode && assetMode !== "full") {
+      // Create a smooth horizontal gradient canvas for the letter face
+      const letterFaceCanvas = document.createElement("canvas");
+      letterFaceCanvas.width = 256;
+      letterFaceCanvas.height = 1;
+      const faceCtx = letterFaceCanvas.getContext("2d");
+      if (faceCtx) {
+        const grad = faceCtx.createLinearGradient(0, 0, 256, 0);
+        grad.addColorStop(0, "#00E5FF"); // Energy-Cyan
+        grad.addColorStop(1, "#0052FF"); // Tech-Blue
+        faceCtx.fillStyle = grad;
+        faceCtx.fillRect(0, 0, 256, 1);
+      }
+      const letterFaceTexture = new THREE.CanvasTexture(letterFaceCanvas);
 
-    // b. Big "D" Arc Tube Shape
-    // Let's create a perfect curve for stroke D
-    const dPoints = [
-      new THREE.Vector3(5, 14, 0),
-      new THREE.Vector3(12, 14, 0),
-      new THREE.Vector3(26, 8, 0),
-      new THREE.Vector3(29, 0, 0),
-      new THREE.Vector3(26, -8, 0),
-      new THREE.Vector3(12, -14, 0),
-      new THREE.Vector3(5, -14, 0),
-    ];
-    const dCurve = new THREE.CatmullRomCurve3(dPoints);
-    const dTubeGeom = new THREE.TubeGeometry(dCurve, 64, 2.5, 16, false);
-    const dMesh = new THREE.Mesh(dTubeGeom, blueMaterial);
-    logoGroup.add(dMesh);
+      const letterFaceMaterial = new THREE.MeshStandardMaterial({
+        map: letterFaceTexture,
+        metalness: 0.9,
+        roughness: 0.15,
+        envMapIntensity: 1.5,
+      });
 
-    // c. Futuristic "M" Left Leg Curve Tube
-    const mLeftPoints = [
-      new THREE.Vector3(8, -14, 0),
-      new THREE.Vector3(8, 2, 0),
-      new THREE.Vector3(16, -6, 0),
-    ];
-    const mLeftCurve = new THREE.CatmullRomCurve3(mLeftPoints);
-    const mLeftGeom = new THREE.TubeGeometry(mLeftCurve, 32, 2.1, 16, false);
-    const mLeftMesh = new THREE.Mesh(mLeftGeom, blueMaterial);
-    logoGroup.add(mLeftMesh);
+      // Render the single bold, capitalized 3D letter
+      letterMesh = create3DWord(assetMode.toUpperCase(), 24.0, 6.0, [letterFaceMaterial, goldMaterial]);
+      logoGroup.add(letterMesh);
+    } else {
+      // a. Equalizer Bars (Capsules for perfect round 3D look)
+      const eqParams = [
+        { x: -31, h: 28 },
+        { x: -24, h: 44 },
+        { x: -17, h: 60 },
+        { x: -10, h: 36 },
+      ];
 
-    // d. Futuristic "M" Right Leg Curve Tube
-    const mRightPoints = [
-      new THREE.Vector3(16, -6, 0),
-      new THREE.Vector3(24, 2, 0),
-      new THREE.Vector3(24, -14, 0),
-    ];
-    const mRightCurve = new THREE.CatmullRomCurve3(mRightPoints);
-    const mRightGeom = new THREE.TubeGeometry(mRightCurve, 32, 2.1, 16, false);
-    const mRightMesh = new THREE.Mesh(mRightGeom, goldMaterial);
-    logoGroup.add(mRightMesh);
+      eqParams.forEach((param) => {
+        // Capsules are centered on origin, length is the cylindrical height, radius is thickness
+        const radius = 1.95;
+        const length = param.h - radius * 2;
+        const eqGeom = new THREE.CapsuleGeometry(radius, length, 8, 24);
+        const eqMesh = new THREE.Mesh(eqGeom, eqMaterial);
+        eqMesh.position.set(param.x, 0, 0);
+        logoGroup.add(eqMesh);
+      });
 
-    // e. Central Interactive Glowing Circle Node
-    const sphereGeom = new THREE.SphereGeometry(2.7, 32, 32);
-    const sphereMesh = new THREE.Mesh(sphereGeom, sphereMaterial);
-    sphereMesh.position.set(16, -6, 0.4); // Push slightly forward (Z-axis) to pop
-    logoGroup.add(sphereMesh);
+      // b. Big "D" Arc Tube Shape
+      // Let's create a perfect curve for stroke D
+      const dPoints = [
+        new THREE.Vector3(5, 14, 0),
+        new THREE.Vector3(12, 14, 0),
+        new THREE.Vector3(26, 8, 0),
+        new THREE.Vector3(29, 0, 0),
+        new THREE.Vector3(26, -8, 0),
+        new THREE.Vector3(12, -14, 0),
+        new THREE.Vector3(5, -14, 0),
+      ];
+      const dCurve = new THREE.CatmullRomCurve3(dPoints);
+      const dTubeGeom = new THREE.TubeGeometry(dCurve, 64, 2.5, 16, false);
+      const dMesh = new THREE.Mesh(dTubeGeom, blueMaterial);
+      logoGroup.add(dMesh);
 
-    // f. 3D Text Lockup if requested
-    if (showText) {
-      // Create 'DONMAY' group
-      const donmayMesh = create3DWord("DONMAY", 13.5, 3.2, blueMaterial);
-      donmayMesh.position.set(38, 1.8, 0);
-      logoGroup.add(donmayMesh);
+      // c. Futuristic "M" Left Leg Curve Tube
+      const mLeftPoints = [
+        new THREE.Vector3(8, -14, 0),
+        new THREE.Vector3(8, 2, 0),
+        new THREE.Vector3(16, -6, 0),
+      ];
+      const mLeftCurve = new THREE.CatmullRomCurve3(mLeftPoints);
+      const mLeftGeom = new THREE.TubeGeometry(mLeftCurve, 32, 2.1, 16, false);
+      const mLeftMesh = new THREE.Mesh(mLeftGeom, blueMaterial);
+      logoGroup.add(mLeftMesh);
 
-      // Create 'MEDIA & TECH' group below it
-      const mediaTechMesh = create3DWord("MEDIA & TECH", 6.2, 1.6, goldMaterial);
-      mediaTechMesh.position.set(38, -11.5, 0);
-      logoGroup.add(mediaTechMesh);
+      // d. Futuristic "M" Right Leg Curve Tube
+      const mRightPoints = [
+        new THREE.Vector3(16, -6, 0),
+        new THREE.Vector3(24, 2, 0),
+        new THREE.Vector3(24, -14, 0),
+      ];
+      const mRightCurve = new THREE.CatmullRomCurve3(mRightPoints);
+      const mRightGeom = new THREE.TubeGeometry(mRightCurve, 32, 2.1, 16, false);
+      const mRightMesh = new THREE.Mesh(mRightGeom, goldMaterial);
+      logoGroup.add(mRightMesh);
+
+      // e. Central Interactive Glowing Circle Node
+      const sphereGeom = new THREE.SphereGeometry(2.7, 32, 32);
+      const sphereMesh = new THREE.Mesh(sphereGeom, sphereMaterial);
+      sphereMesh.position.set(16, -6, 0.4); // Push slightly forward (Z-axis) to pop
+      logoGroup.add(sphereMesh);
+
+      // f. 3D Text Lockup if requested
+      if (showText) {
+        // Create 'DONMAY' group
+        const donmayMesh = create3DWord("DONMAY", 13.5, 3.2, blueMaterial);
+        donmayMesh.position.set(38, 1.8, 0);
+        logoGroup.add(donmayMesh);
+
+        // Create 'MEDIA & TECH' group below it
+        const mediaTechMesh = create3DWord("MEDIA & TECH", 6.2, 1.6, goldMaterial);
+        mediaTechMesh.position.set(38, -11.5, 0);
+        logoGroup.add(mediaTechMesh);
+      }
     }
 
     // Dynamic auto-centering centroid adjustment
@@ -519,7 +556,13 @@ export default function ThreeLogoCanvas({
       mouse.current.targetY = y * 0.45;
     };
 
+    const handleMouseLeave = () => {
+      mouse.current.targetX = 0;
+      mouse.current.targetY = 0;
+    };
+
     window.addEventListener("mousemove", handleMouseMove);
+    renderer.domElement.addEventListener("mouseleave", handleMouseLeave);
 
     // 8. ANIMATED RENDER LOOP
     let clock = new THREE.Clock();
@@ -532,19 +575,31 @@ export default function ThreeLogoCanvas({
         controls.update();
       }
 
-      // Slow idle organic floating translation / oscillation loop
+      // 1. Base rotation and position (idle slo-float)
+      let baseRotY = 0;
+      let baseRotX = 0;
+      let basePosY = 0;
+
       if (autoRotate && !spinningDemo) {
-        group.rotation.y = Math.sin(elapsedTime * 0.6) * 0.15;
-        group.rotation.x = Math.cos(elapsedTime * 0.4) * 0.08;
-        group.position.y = Math.sin(elapsedTime * 1.2) * 1.5;
+        baseRotY = Math.sin(elapsedTime * 0.6) * 0.15;
+        baseRotX = Math.cos(elapsedTime * 0.4) * 0.08;
+        basePosY = Math.sin(elapsedTime * 1.2) * 1.5;
       }
 
-      // Smooth mouse interaction lag/spring
+      // 2. Mouse interactive tilt (smooth spring-damping)
       if (interactive && !spinningDemo) {
         mouse.current.x += (mouse.current.targetX - mouse.current.x) * 0.1;
         mouse.current.y += (mouse.current.targetY - mouse.current.y) * 0.1;
-        group.rotation.y += mouse.current.x;
-        group.rotation.x -= mouse.current.y;
+        
+        // Directly set properties to hold a safe range and guarantee readability
+        group.rotation.y = baseRotY + mouse.current.x;
+        group.rotation.x = baseRotX - mouse.current.y;
+        group.position.y = basePosY;
+      } else if (!spinningDemo) {
+        // Safe lock flat-faced
+        group.rotation.y = baseRotY;
+        group.rotation.x = baseRotX;
+        group.position.y = basePosY;
       }
 
       // Continuous Spotlight Reveal glint tracking circle
@@ -558,12 +613,17 @@ export default function ThreeLogoCanvas({
         const duration = 5.0;
         // Periodic time t wrapped around duration to guarantee loop safety
         const t = elapsedTime % duration;
+        const startCamZ = assetMode !== "full" ? 400 : cameraZ;
+
+        if (assetMode !== "full" && letterMesh) {
+          letterMesh.rotation.set(0, 0, 0);
+        }
 
         if (t === 0 || elapsedTime === 0) {
           // Exact flat-facing readability alignment at Frame 0 / timestamp 0:00
           group.rotation.set(0, 0, 0);
           group.position.set(0, 0, 0);
-          camera.position.set(0, 0, cameraZ);
+          camera.position.set(0, 0, startCamZ);
         } else if (t < 1.0) {
           // Seconds 0.0 – 1.0: Gentle elegant tilt-reveal
           const p = t; // normalized 0.0 to 1.0
@@ -574,7 +634,7 @@ export default function ThreeLogoCanvas({
           group.rotation.z = 0;
           group.position.y = 0;
 
-          camera.position.z = cameraZ - smoothP * 30; // camera moves in slightly
+          camera.position.z = startCamZ - smoothP * 30; // camera moves in slightly
           camera.position.x = 0;
           camera.position.y = 0;
         } else if (t < 3.5) {
@@ -590,7 +650,7 @@ export default function ThreeLogoCanvas({
           group.rotation.y = 0.25 - p * 0.8; // sweeps from 0.25 down to -0.55
           group.rotation.z = Math.sin(p * Math.PI) * 0.04;
 
-          camera.position.z = (cameraZ - 30) + Math.sin(p * Math.PI) * 15;
+          camera.position.z = (startCamZ - 30) + Math.sin(p * Math.PI) * 15;
           camera.position.x = Math.sin(p * Math.PI) * 20;
           camera.position.y = Math.cos(p * Math.PI) * 5;
         } else {
@@ -603,8 +663,8 @@ export default function ThreeLogoCanvas({
           group.rotation.z = 0;
           group.position.y = 0;
 
-          // LERP camera position back to exactly cameraZ
-          camera.position.z = THREE.MathUtils.lerp(cameraZ - 30, cameraZ, easeP);
+          // LERP camera position back to exactly startCamZ
+          camera.position.z = THREE.MathUtils.lerp(startCamZ - 30, startCamZ, easeP);
           camera.position.x = THREE.MathUtils.lerp(20, 0, easeP);
           camera.position.y = THREE.MathUtils.lerp(5, 0, easeP);
         }
@@ -614,6 +674,26 @@ export default function ThreeLogoCanvas({
         // Spotlight circles around
         spotlight.position.x = Math.cos(elapsedTime * 1.5) * 35;
         spotlight.position.y = Math.sin(elapsedTime * 1.5) * 35;
+      }
+
+      // 4. Force strict face-forward calibration for STILL or snapshot triggers
+      if (forceFrontSnap) {
+        if (assetMode && assetMode !== "full") {
+          if (letterMesh) {
+            letterMesh.rotation.set(0, 0, 0);
+          }
+          // Majestic 3D Showcase Angle matching the rotating screenshot perfectly!
+          group.rotation.set(0.18, 0.28, 0);
+          group.position.set(0, 0, 0);
+          camera.position.set(0, 0, cameraZ); // Uses perfect 200 zoom setting instead of custom 400
+        } else {
+          // Subtle elegant 3D tilt for full brand signature logo as well
+          group.rotation.set(0.08, 0.14, 0);
+          group.position.set(0, 0, 0);
+          camera.position.set(0, 0, cameraZ); // Uses perfect 450 zoom setting
+        }
+        camera.lookAt(0, 0, 0);
+        camera.updateProjectionMatrix();
       }
 
       renderer.render(scene, camera);
@@ -634,6 +714,7 @@ export default function ThreeLogoCanvas({
     // Cleanup resources
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      renderer.domElement.removeEventListener("mouseleave", handleMouseLeave);
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
       resizeObserver.disconnect();
       if (controls) {
@@ -671,6 +752,8 @@ export default function ThreeLogoCanvas({
     spotlightIntensity,
     cameraZ,
     showText,
+    assetMode,
+    forceFrontSnap,
   ]);
 
   // SVG Fallback for low-spec/WebGL-restricted devices or contexts

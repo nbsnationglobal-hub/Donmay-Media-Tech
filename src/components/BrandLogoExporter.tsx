@@ -32,6 +32,8 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
   const [spotlightIntensity, setSpotlightIntensity] = useState(20);
   const [isRotating, setIsRotating] = useState(true);
   const [spotlightSweep, setSpotlightSweep] = useState(true);
+  const [assetMode, setAssetMode] = useState<string>("full");
+  const [forceFrontSnap, setForceFrontSnap] = useState(false);
 
   // Exporter compilation state
   const [compiling, setCompiling] = useState(false);
@@ -53,21 +55,33 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
   // Helper: Triggers a high-definition 1:1 snapshot save
   const handleExportStill = () => {
     if (!canvasContainerRef.current) return;
-    const canvas = canvasContainerRef.current.querySelector("canvas");
-    if (!canvas) {
-      alert("Error: WebGL Render target in construction. Please retry in 1s.");
-      return;
-    }
+    
+    // Set forceFrontSnap to true to pause orbit/floating physics and force camera alignment
+    setForceFrontSnap(true);
 
-    try {
-      const dataUrl = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.download = `DONMAY_3D_METALLIC_LOGO_STILL.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (e) {
-      console.error("Snapshot extraction failed:", e);
-    }
+    setTimeout(() => {
+      const canvas = canvasContainerRef.current?.querySelector("canvas");
+      if (!canvas) {
+        alert("Error: WebGL Render target not ready. Please try again.");
+        setForceFrontSnap(false);
+        return;
+      }
+
+      try {
+        const dataUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        const filename = assetMode === "full" 
+          ? `DONMAY_3D_METALLIC_LOGO_STILL.png`
+          : `DONMAY_COVER_LETTER_${assetMode.toUpperCase()}_STILL.png`;
+        link.download = filename;
+        link.href = dataUrl;
+        link.click();
+      } catch (e) {
+        console.error("Snapshot extraction failed:", e);
+      } finally {
+        setForceFrontSnap(false);
+      }
+    }, 150);
   };
 
   // Helper: Dynamic recording wrapper using MediaRecorder API to record the perfect 5s loop
@@ -176,7 +190,10 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
     if (downloadUrl) {
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.download = downloadType === "video" ? "DONMAY_3D_LOGO_LOOP.mp4" : "DONMAY_3D_LOGO_LOOP.gif";
+      const filename = assetMode === "full"
+        ? (downloadType === "video" ? "DONMAY_3D_LOGO_LOOP.mp4" : "DONMAY_3D_LOGO_LOOP.gif")
+        : (downloadType === "video" ? `DONMAY_COVER_LETTER_${assetMode.toUpperCase()}_LOOP.mp4` : `DONMAY_COVER_LETTER_${assetMode.toUpperCase()}_LOOP.gif`);
+      link.download = filename;
       link.click();
     } else {
       // Fallback if browser environment sandbox blocks live Stream Capture
@@ -229,9 +246,9 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
               {/* Spinning 3D demo with glowing glints */}
               <ThreeLogoCanvas
                 size={340}
-                showText={true} // Extrude the company name and tech text alongside
-                scaleFactor={1.62} // Beautiful proportionate size scaling
-                cameraZ={450} // Perfectly pulls back the viewport for proper framing and margins
+                showText={assetMode === "full"} // Only render tagline text alongside in full signature mode
+                scaleFactor={assetMode === "full" ? 1.62 : 3.4} // Majestic size for individual covers, clean framing for full logo
+                cameraZ={assetMode === "full" ? 450 : 200} // Pulls in the viewport for individual letters
                 interactive={true}
                 autoRotate={isRotating}
                 glowingSpotlight={spotlightSweep}
@@ -240,6 +257,8 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
                 secondaryLightColor={secondaryColor}
                 ambientIntensity={ambientIntensity}
                 spotlightIntensity={spotlightIntensity}
+                assetMode={assetMode}
+                forceFrontSnap={forceFrontSnap}
               />
 
               {/* Spotlight focus halo overlay */}
@@ -257,6 +276,33 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
         {/* RIGHT COLUMN: CONTROLS & COMPRESSOR */}
         <div className="lg:col-span-7 flex flex-col gap-8 justify-between">
           
+          {/* STUDIO ASSET MODE */}
+          <div className="p-6 rounded-xl border border-[#1C64F2]/20 bg-[#080B1C]/60 backdrop-blur-md">
+            <span className="font-mono text-[9px] text-[#00F0FF] tracking-widest uppercase font-black block mb-3">
+              STUDIO ASSET MODE:
+            </span>
+            <div className="relative">
+              <select
+                id="studio-asset-mode-select"
+                value={assetMode}
+                onChange={(e) => setAssetMode(e.target.value)}
+                className="w-full bg-[#040714] border border-[#1C64F2]/30 rounded px-4 py-3 text-sm font-mono text-white tracking-wide cursor-pointer focus:outline-none focus:border-[#00F0FF]/80 focus:shadow-[0_0_15px_rgba(0,240,255,0.15)] transition-all ease-out"
+              >
+                <option value="full">Full Brand Signature (Default)</option>
+                <option value="D">Instagram Cover: D</option>
+                <option value="O">Instagram Cover: O</option>
+                <option value="N">Instagram Cover: N</option>
+                <option value="M">Instagram Cover: M</option>
+                <option value="A">Instagram Cover: A</option>
+                <option value="Y">Instagram Cover: Y</option>
+                <option value="T">Instagram Cover: T</option>
+                <option value="E">Instagram Cover: E</option>
+                <option value="C">Instagram Cover: C</option>
+                <option value="H">Instagram Cover: H</option>
+              </select>
+            </div>
+          </div>
+
           {/* THEME PRESET SLIDER */}
           <div className="p-6 rounded-xl border border-white/5 bg-[#080B1C]/60 backdrop-blur-md">
             <span className="font-mono text-[9px] text-[#00F0FF] tracking-widest uppercase font-black block mb-4">
