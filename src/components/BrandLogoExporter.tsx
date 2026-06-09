@@ -44,6 +44,7 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
   const [downloadType, setDownloadType] = useState<"video" | "still" | "gif" | null>(null);
 
   const canvasContainerRef = useRef<HTMLDivElement>(null);
+  const recordedMimeTypeRef = useRef<string>("");
 
   // Apply Presets helper
   const applyPreset = (idx: number) => {
@@ -90,6 +91,8 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
     
     // Set compiling to true first to trigger the ThreeLogoCanvas re-initialization
     setCompiling(true);
+    // Force camera alignment and snap the first frame flat before recording starts
+    setForceFrontSnap(true);
     setCompileProgress(0);
     setCompiledSuccess(false);
     setDownloadType(type);
@@ -99,12 +102,14 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
     setTimeout(() => {
       if (!canvasContainerRef.current) {
         setCompiling(false);
+        setForceFrontSnap(false);
         return;
       }
       const canvas = canvasContainerRef.current.querySelector("canvas");
       if (!canvas) {
         alert("Error: WebGL Render target not ready. Please try again.");
         setCompiling(false);
+        setForceFrontSnap(false);
         return;
       }
 
@@ -129,14 +134,24 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
         // @ts-ignore
         const stream = canvas.captureStream ? canvas.captureStream(60) : null;
         if (stream) {
-          // Find optimal mime type
-          let mimeType = "video/webm; codecs=vp9";
-          if (!MediaRecorder.isTypeSupported(mimeType)) {
-            mimeType = "video/webm";
+          // Robust options array to enforce strict, hardware-accelerated H.264 video encoding (iOS native)
+          const allowedTypes = [
+            'video/mp4;codecs=avc1.42E01E,mp4a.40.2', // Standard H.264 / AAC (Perfect for iPhone)
+            'video/mp4;codecs=h264',
+            'video/webm;codecs=h264',
+            'video/mp4',
+            'video/webm;codecs=vp9',
+            'video/webm'
+          ];
+          
+          let mimeType = "";
+          for (const tType of allowedTypes) {
+            if (MediaRecorder.isTypeSupported(tType)) {
+              mimeType = tType;
+              break;
+            }
           }
-          if (!MediaRecorder.isTypeSupported(mimeType)) {
-            mimeType = ""; // default browser capture
-          }
+          recordedMimeTypeRef.current = mimeType;
           
           mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
           mediaRecorder.ondataavailable = (e) => {
@@ -145,14 +160,24 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
             }
           };
           mediaRecorder.onstop = () => {
-            const blob = new Blob(chunks, { type: type === "video" ? "video/mp4" : "image/gif" });
+            const blobType = type === "video" 
+              ? (mimeType || "video/mp4") 
+              : "image/gif";
+            const blob = new Blob(chunks, { type: blobType });
             const url = URL.createObjectURL(blob);
             setDownloadUrl(url);
           };
           mediaRecorder.start();
+
+          // CRITICAL: Immediately release the flat-facing snap, allowing the camera clock
+          // to trigger clean cinematic floating sweeps over the remaining 5 seconds
+          setForceFrontSnap(false);
+        } else {
+          setForceFrontSnap(false);
         }
       } catch (err) {
         console.warn("Direct MediaRecorder stream not supported or blocked in preview panel context. Falling back to high-fidelity export.", err);
+        setForceFrontSnap(false);
       }
 
       const timer = setInterval(() => {
@@ -190,9 +215,13 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
     if (downloadUrl) {
       const link = document.createElement("a");
       link.href = downloadUrl;
+      const isWebmFallback = recordedMimeTypeRef.current.includes("video/webm") && !recordedMimeTypeRef.current.includes("codecs=h264");
+      const extension = downloadType === "video" 
+        ? (isWebmFallback ? "webm" : "mp4") 
+        : "gif";
       const filename = assetMode === "full"
-        ? (downloadType === "video" ? "DONMAY_3D_LOGO_LOOP.mp4" : "DONMAY_3D_LOGO_LOOP.gif")
-        : (downloadType === "video" ? `DONMAY_COVER_LETTER_${assetMode.toUpperCase()}_LOOP.mp4` : `DONMAY_COVER_LETTER_${assetMode.toUpperCase()}_LOOP.gif`);
+        ? (downloadType === "video" ? `DONMAY_3D_LOGO_LOOP.${extension}` : "DONMAY_3D_LOGO_LOOP.gif")
+        : (downloadType === "video" ? `DONMAY_COVER_LETTER_${assetMode.toUpperCase()}_LOOP.${extension}` : `DONMAY_COVER_LETTER_${assetMode.toUpperCase()}_LOOP.gif`);
       link.download = filename;
       link.click();
     } else {

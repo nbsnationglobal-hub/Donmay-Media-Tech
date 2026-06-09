@@ -260,6 +260,12 @@ export default function ThreeLogoCanvas({
   const mouse = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
   const [hasWebGL, setHasWebGL] = useState(true);
 
+  // Synchronize forceFrontSnap in a ref to keep it dynamic and avoid re-instantiating WebGL
+  const forceFrontSnapRef = useRef(forceFrontSnap);
+  useEffect(() => {
+    forceFrontSnapRef.current = forceFrontSnap;
+  }, [forceFrontSnap]);
+
   // Expose canvas for media capture/snapshots if needed
   useEffect(() => {
     if (!containerRef.current) return;
@@ -566,8 +572,18 @@ export default function ThreeLogoCanvas({
 
     // 8. ANIMATED RENDER LOOP
     let clock = new THREE.Clock();
+    let lastForceFrontSnap = forceFrontSnapRef.current;
 
     const tick = () => {
+      const currentForceFrontSnap = forceFrontSnapRef.current;
+      if (lastForceFrontSnap && !currentForceFrontSnap) {
+        // Just transitioned from preparation/flat prep to active recording animation sequence.
+        // Restart the clock to guarantee the captured stream begins exactly at frame 0.0s.
+        clock.getElapsedTime();
+        clock.start();
+      }
+      lastForceFrontSnap = currentForceFrontSnap;
+
       const elapsedTime = clock.getElapsedTime();
 
       // Update OrbitControls if active
@@ -677,20 +693,18 @@ export default function ThreeLogoCanvas({
       }
 
       // 4. Force strict face-forward calibration for STILL or snapshot triggers
-      if (forceFrontSnap) {
+      if (forceFrontSnapRef.current) {
         if (assetMode && assetMode !== "full") {
           if (letterMesh) {
             letterMesh.rotation.set(0, 0, 0);
           }
-          // Majestic 3D Showcase Angle matching the rotating screenshot perfectly!
-          group.rotation.set(0.18, 0.28, 0);
+          group.rotation.set(0, 0, 0);
           group.position.set(0, 0, 0);
-          camera.position.set(0, 0, cameraZ); // Uses perfect 200 zoom setting instead of custom 400
+          camera.position.set(0, 0, 400);
         } else {
-          // Subtle elegant 3D tilt for full brand signature logo as well
-          group.rotation.set(0.08, 0.14, 0);
+          group.rotation.set(0, 0, 0);
           group.position.set(0, 0, 0);
-          camera.position.set(0, 0, cameraZ); // Uses perfect 450 zoom setting
+          camera.position.set(0, 0, cameraZ);
         }
         camera.lookAt(0, 0, 0);
         camera.updateProjectionMatrix();
@@ -753,7 +767,6 @@ export default function ThreeLogoCanvas({
     cameraZ,
     showText,
     assetMode,
-    forceFrontSnap,
   ]);
 
   // SVG Fallback for low-spec/WebGL-restricted devices or contexts
