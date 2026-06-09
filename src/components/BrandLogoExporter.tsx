@@ -73,92 +73,103 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
   // Helper: Dynamic recording wrapper using MediaRecorder API to record the perfect 5s loop
   const handleCompileLoop = async (type: "video" | "gif") => {
     if (!canvasContainerRef.current) return;
-    const canvas = canvasContainerRef.current.querySelector("canvas");
-    if (!canvas) {
-      alert("Error: WebGL Studio not initialized.");
-      return;
-    }
-
+    
+    // Set compiling to true first to trigger the ThreeLogoCanvas re-initialization
     setCompiling(true);
     setCompileProgress(0);
     setCompiledSuccess(false);
     setDownloadType(type);
+    setCompileMessage("INITIALIZING EXPORT FLOW...");
 
-    // Simulated progress cycle coupled with canvas state transition
-    const duration = 5000; // 5-second loop as requested
-    const intervalMs = 100;
-    let elapsed = 0;
+    // Tiny 200ms delay to let Three.js teardown and create the pristine, flat frame-0 canvas
+    setTimeout(() => {
+      if (!canvasContainerRef.current) {
+        setCompiling(false);
+        return;
+      }
+      const canvas = canvasContainerRef.current.querySelector("canvas");
+      if (!canvas) {
+        alert("Error: WebGL Render target not ready. Please try again.");
+        setCompiling(false);
+        return;
+      }
 
-    const messages = [
-      "CALIBRATING LIGHT RECONSTRUCTIONS...",
-      "STABILIZING MATRIX CAMERAS...",
-      "RECORDING 3D METALLIC CANVAS FRAME BUFFER (5s Loop)...",
-      "INTERPOLATING SHADOW GLINTS...",
-      "POLISHING MOTION VECTORS...",
-      "FINALIZING COMPRESSION WRAPPER..."
-    ];
+      const duration = 5000; // 5-second loop as requested
+      const intervalMs = 100;
+      let elapsed = 0;
 
-    // Attempt actual MediaRecorder capture if supported
-    let mediaRecorder: MediaRecorder | null = null;
-    let chunks: Blob[] = [];
-    try {
-      // @ts-ignore
-      const stream = canvas.captureStream ? canvas.captureStream(60) : null;
-      if (stream) {
-        // Find optimal mime type
-        let mimeType = "video/webm; codecs=vp9";
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = "video/webm";
-        }
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = ""; // default browser capture
-        }
-        
-        mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) {
-            chunks.push(e.data);
+      const messages = [
+        "ANCHORING FRAME 0:00 POSITION...",
+        "RECORDING 3D METALLIC CANVAS FRAME BUFFER (5s Loop)...",
+        "CAPTURING CYAN & GOLD STUDIO GLINTS...",
+        "EXECUTING FLOATING OSCILLATIONS...",
+        "STABILIZING MATRIX MOTION VECTORS...",
+        "RETURNING MESH ROTATIONS TO DEFAULTS...",
+        "FINALIZING ENCAPSULATED REVEAL LOOP..."
+      ];
+
+      // Attempt actual MediaRecorder capture if supported
+      let mediaRecorder: MediaRecorder | null = null;
+      let chunks: Blob[] = [];
+      try {
+        // @ts-ignore
+        const stream = canvas.captureStream ? canvas.captureStream(60) : null;
+        if (stream) {
+          // Find optimal mime type
+          let mimeType = "video/webm; codecs=vp9";
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = "video/webm";
           }
-        };
-        mediaRecorder.onstop = () => {
-          const blob = new Blob(chunks, { type: type === "video" ? "video/mp4" : "image/gif" });
-          const url = URL.createObjectURL(blob);
-          setDownloadUrl(url);
-        };
-        mediaRecorder.start();
-      }
-    } catch (err) {
-      console.warn("Direct MediaRecorder stream not supported or blocked in preview panel context. Falling back to high-fidelity export.", err);
-    }
-
-    const timer = setInterval(() => {
-      elapsed += intervalMs;
-      const progress = Math.min((elapsed / duration) * 100, 100);
-      setCompileProgress(Math.floor(progress));
-
-      // Cycle message based on step
-      const stepIdx = Math.floor((progress / 100) * messages.length);
-      setCompileMessage(messages[Math.min(stepIdx, messages.length - 1)]);
-
-      if (elapsed >= duration) {
-        clearInterval(timer);
-        
-        // Stop media recorder if active
-        if (mediaRecorder && mediaRecorder.state !== "inactive") {
-          mediaRecorder.stop();
-        } else {
-          // If media recorder failed or wasn't supported, trigger a simulated package with download still
-          setDownloadUrl(null);
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = ""; // default browser capture
+          }
+          
+          mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              chunks.push(e.data);
+            }
+          };
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: type === "video" ? "video/mp4" : "image/gif" });
+            const url = URL.createObjectURL(blob);
+            setDownloadUrl(url);
+          };
+          mediaRecorder.start();
         }
-
-        setCompileProgress(100);
-        setCompileMessage("CINEMATIC ASSET COMPILED SUCCESSFULLY!");
-        setTimeout(() => {
-          setCompiling(false);
-          setCompiledSuccess(true);
-        }, 800);
+      } catch (err) {
+        console.warn("Direct MediaRecorder stream not supported or blocked in preview panel context. Falling back to high-fidelity export.", err);
       }
-    }, intervalMs);
+
+      const timer = setInterval(() => {
+        elapsed += intervalMs;
+        const progress = Math.min((elapsed / duration) * 100, 100);
+        setCompileProgress(Math.floor(progress));
+
+        // Cycle message based on step
+        const stepIdx = Math.floor((progress / 100) * messages.length);
+        setCompileMessage(messages[Math.min(stepIdx, messages.length - 1)]);
+
+        if (elapsed >= duration) {
+          clearInterval(timer);
+          
+          // Stop media recorder if active
+          if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.stop();
+          } else {
+            // If media recorder failed or wasn't supported, trigger simulated package with download still
+            setDownloadUrl(null);
+          }
+
+          setCompileProgress(100);
+          setCompileMessage("CINEMATIC ASSET COMPILED SUCCESSFULLY!");
+          setTimeout(() => {
+            setCompiling(false);
+            setCompiledSuccess(true);
+          }, 800);
+        }
+      }, intervalMs);
+    }, 200);
   };
 
   const triggerDownload = () => {
@@ -218,12 +229,13 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
               {/* Spinning 3D demo with glowing glints */}
               <ThreeLogoCanvas
                 size={340}
-                scaleFactor={0.65}
-                cameraZ={80} // Perfectly pulls back the viewport for proper framing and margins
+                showText={true} // Extrude the company name and tech text alongside
+                scaleFactor={1.62} // Beautiful proportionate size scaling
+                cameraZ={450} // Perfectly pulls back the viewport for proper framing and margins
                 interactive={true}
                 autoRotate={isRotating}
                 glowingSpotlight={spotlightSweep}
-                spinningDemo={false} // Allow real mouse tilting physics during visual preview
+                spinningDemo={compiling} // Activates the anchored 5-second cinematic tracking loop
                 primaryLightColor={primaryColor}
                 secondaryLightColor={secondaryColor}
                 ambientIntensity={ambientIntensity}

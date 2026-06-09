@@ -103,10 +103,11 @@ export default function DonmayLogo({ className = "", symbolSize = 34, compact = 
     <div className={`flex items-center gap-3.5 select-none ${className}`}>
       {/* High Fidelity 3D Extruded Symbol with Slow Float and Interactive Mouse Physics */}
       <ThreeLogoCanvas
-        size={symbolSize + 6} // Give slightly more padding to allow 3D rotations without clipping
-        scaleFactor={(symbolSize + 6) / 50} // Beautiful proportionate responsive scaling to completely fill bounding box
-        cameraZ={65} // Significantly closer along Z-axis for clear framing
+        size={symbolSize + 10} // Give slightly more padding to allow 3D rotations without clipping
+        scaleFactor={0.9} // Beautiful proportionate responsive scaling to completely fill bounding box
+        cameraZ={75} // Perfectly calibrated closer Z-axis focal point for gorgeous framing
         className="flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+        showText={false}
       />
 
       {/* Corporate Typography Lockup */}

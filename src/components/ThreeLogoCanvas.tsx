@@ -5,6 +5,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 interface ThreeLogoCanvasProps {
   className?: string; // Additional Tailwind styling if needed
@@ -19,21 +20,235 @@ interface ThreeLogoCanvasProps {
   ambientIntensity?: number; // Ambient background light strength
   spotlightIntensity?: number; // Floating spotlight spot strength
   cameraZ?: number; // Custom camera distance along Z-axis
+  showText?: boolean; // Support toggleable 3D typography
+}
+
+// ==========================================
+// PROCEDURAL 3D VECTOR TYPOGRAPHY ENGINE
+// ==========================================
+function createLetterShape(char: string): THREE.Shape {
+  const shape = new THREE.Shape();
+  if (char === "D") {
+    shape.moveTo(0, 0);
+    shape.lineTo(0, 10);
+    shape.lineTo(4, 10);
+    shape.quadraticCurveTo(8, 10, 8, 5);
+    shape.quadraticCurveTo(8, 0, 4, 0);
+    shape.closePath();
+    
+    const hole = new THREE.Path();
+    hole.moveTo(2, 2);
+    hole.lineTo(2, 8);
+    hole.lineTo(4, 8);
+    hole.quadraticCurveTo(6, 8, 6, 5);
+    hole.quadraticCurveTo(6, 2, 4, 2);
+    hole.closePath();
+    shape.holes.push(hole);
+  } else if (char === "O") {
+    shape.absellipse(4.5, 5, 4.5, 5, 0, Math.PI * 2, false, 0);
+    const hole = new THREE.Path();
+    hole.absellipse(4.5, 5, 2.3, 3.2, 0, Math.PI * 2, true, 0);
+    shape.holes.push(hole);
+  } else if (char === "N") {
+    shape.moveTo(0, 0);
+    shape.lineTo(0, 10);
+    shape.lineTo(2.2, 10);
+    shape.lineTo(6, 2.8);
+    shape.lineTo(6, 10);
+    shape.lineTo(8.2, 10);
+    shape.lineTo(8.2, 0);
+    shape.lineTo(6, 0);
+    shape.lineTo(2.2, 7.2);
+    shape.lineTo(2.2, 0);
+    shape.closePath();
+  } else if (char === "M") {
+    shape.moveTo(0, 0);
+    shape.lineTo(0, 10);
+    shape.lineTo(2.2, 10);
+    shape.lineTo(4.8, 3.8);
+    shape.lineTo(7.4, 10);
+    shape.lineTo(9.6, 10);
+    shape.lineTo(9.6, 0);
+    shape.lineTo(7.6, 0);
+    shape.lineTo(7.6, 6.8);
+    shape.lineTo(4.8, 1.2);
+    shape.lineTo(2, 6.8);
+    shape.lineTo(2, 0);
+    shape.closePath();
+  } else if (char === "A") {
+    shape.moveTo(0, 0);
+    shape.lineTo(3.4, 10);
+    shape.lineTo(6.2, 10);
+    shape.lineTo(9.6, 0);
+    shape.lineTo(7.4, 0);
+    shape.lineTo(6.4, 3.2);
+    shape.lineTo(3.2, 3.2);
+    shape.lineTo(2.2, 0);
+    shape.closePath();
+
+    const hole = new THREE.Path();
+    hole.moveTo(4.8, 8);
+    hole.lineTo(3.7, 4.8);
+    hole.lineTo(5.9, 4.8);
+    hole.closePath();
+    shape.holes.push(hole);
+  } else if (char === "Y") {
+    shape.moveTo(0, 10);
+    shape.lineTo(2.4, 10);
+    shape.lineTo(4.8, 5);
+    shape.lineTo(7.2, 10);
+    shape.lineTo(9.6, 10);
+    shape.lineTo(5.8, 4);
+    shape.lineTo(5.8, 0);
+    shape.lineTo(3.8, 0);
+    shape.lineTo(3.8, 4);
+    shape.closePath();
+  } else if (char === "E") {
+    shape.moveTo(0, 0);
+    shape.lineTo(0, 10);
+    shape.lineTo(7, 10);
+    shape.lineTo(7, 8.2);
+    shape.lineTo(2.2, 8.2);
+    shape.lineTo(2.2, 6);
+    shape.lineTo(6.2, 6);
+    shape.lineTo(6.2, 4.2);
+    shape.lineTo(2.2, 4.2);
+    shape.lineTo(2.2, 1.8);
+    shape.lineTo(7, 1.8);
+    shape.lineTo(7, 0);
+    shape.closePath();
+  } else if (char === "I") {
+    shape.moveTo(0, 0);
+    shape.lineTo(0, 10);
+    shape.lineTo(2.2, 10);
+    shape.lineTo(2.2, 0);
+    shape.closePath();
+  } else if (char === "T") {
+    shape.moveTo(2.8, 0);
+    shape.lineTo(2.8, 8.2);
+    shape.lineTo(0, 8.2);
+    shape.lineTo(0, 10);
+    shape.lineTo(7.8, 10);
+    shape.lineTo(7.8, 8.2);
+    shape.lineTo(5, 8.2);
+    shape.lineTo(5, 0);
+    shape.closePath();
+  } else if (char === "C") {
+    shape.moveTo(6.8, 1.8);
+    shape.lineTo(6.8, 0);
+    shape.quadraticCurveTo(0, 0, 0, 5);
+    shape.quadraticCurveTo(0, 10, 6.8, 10);
+    shape.lineTo(6.8, 8.2);
+    shape.quadraticCurveTo(2.2, 8.2, 2.2, 5);
+    shape.quadraticCurveTo(2.2, 1.8, 6.8, 1.8);
+    shape.closePath();
+  } else if (char === "H") {
+    shape.moveTo(0, 0);
+    shape.lineTo(0, 10);
+    shape.lineTo(2.2, 10);
+    shape.lineTo(2.2, 6);
+    shape.lineTo(6.2, 6);
+    shape.lineTo(6.2, 10);
+    shape.lineTo(8.4, 10);
+    shape.lineTo(8.4, 0);
+    shape.lineTo(6.2, 0);
+    shape.lineTo(6.2, 4.2);
+    shape.lineTo(2.2, 4.2);
+    shape.lineTo(2.2, 0);
+    shape.closePath();
+  } else if (char === "&") {
+    shape.moveTo(0, 0);
+    shape.lineTo(3, 3);
+    shape.lineTo(5, 0);
+    shape.lineTo(7.5, 0);
+    shape.lineTo(4, 4.5);
+    shape.lineTo(6.5, 10);
+    shape.lineTo(4, 10);
+    shape.lineTo(2.2, 6);
+    shape.lineTo(0, 10);
+    shape.lineTo(0, 7.5);
+    shape.lineTo(1.5, 5);
+    shape.lineTo(0, 2.5);
+    shape.closePath();
+  } else if (char === "R") {
+    shape.moveTo(0, 0);
+    shape.lineTo(0, 10);
+    shape.lineTo(5, 10);
+    shape.quadraticCurveTo(8, 10, 8, 7);
+    shape.quadraticCurveTo(8, 4.5, 5, 4.5);
+    shape.lineTo(8, 0);
+    shape.lineTo(5.5, 0);
+    shape.lineTo(2.8, 4.5);
+    shape.lineTo(2, 4.5);
+    shape.lineTo(2, 0);
+    shape.closePath();
+
+    const hole = new THREE.Path();
+    hole.moveTo(2, 6.3);
+    hole.lineTo(2, 8.2);
+    hole.lineTo(4.5, 8.2);
+    hole.quadraticCurveTo(6, 8.2, 6, 7.25);
+    hole.quadraticCurveTo(6, 6.3, 4.5, 6.3);
+    hole.closePath();
+    shape.holes.push(hole);
+  }
+  return shape;
+}
+
+function create3DWord(text: string, size: number, height: number, material: THREE.Material): THREE.Group {
+  const wordGroup = new THREE.Group();
+  let currentX = 0;
+  const scale = size / 10;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (char === " ") {
+      currentX += 4.5 * scale;
+      continue;
+    }
+
+    const shape = createLetterShape(char);
+    const extrudeSettings = {
+      depth: height,
+      bevelEnabled: true,
+      bevelSegments: 2,
+      steps: 1,
+      bevelSize: 0.18 * scale,
+      bevelThickness: 0.18 * scale,
+    };
+
+    const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    geom.scale(scale, scale, 1);
+    
+    const mesh = new THREE.Mesh(geom, material);
+    mesh.position.set(currentX, 0, 0);
+    wordGroup.add(mesh);
+
+    let width = 8.2;
+    if (char === "I") width = 2.2;
+    else if (char === "T" || char === "C" || char === "Y") width = 7.5;
+    else if (char === "M") width = 9.6;
+    else if (char === "&") width = 7.5;
+    
+    currentX += (width + 2) * scale;
+  }
+  return wordGroup;
 }
 
 export default function ThreeLogoCanvas({
   className = "",
   size = 300,
   interactive = true,
-  autoRotate = true,
-  glowingSpotlight = true,
   spinningDemo = false,
+  autoRotate = !spinningDemo,
+  glowingSpotlight = true,
   scaleFactor = 1.0,
   primaryLightColor = "#00F0FF",
   secondaryLightColor = "#FFA012",
   ambientIntensity = 2.5,
   spotlightIntensity = 22,
   cameraZ = 70,
+  showText = false,
 }: ThreeLogoCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -81,6 +296,17 @@ export default function ThreeLogoCanvas({
     // Camera Configuration
     const camera = new THREE.PerspectiveCamera(40, 1, 1, 1000);
     camera.position.z = cameraZ;
+
+    // OrbitControls Setup - explicitly target the true center of the scene
+    let controls: OrbitControls | null = null;
+    if (interactive && !spinningDemo) {
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.enableZoom = false; // Prevent hijack of page scrolls
+      controls.target.set(0, 0, 0);
+      controls.update();
+    }
 
     // 3. GRADIENT COMPONENT TEXTURE GENERATORS
     // Soundwave EQ bars linear gradient (Cyan/Blue -> Yellow/Gold)
@@ -226,6 +452,27 @@ export default function ThreeLogoCanvas({
     sphereMesh.position.set(16, -6, 0.4); // Push slightly forward (Z-axis) to pop
     logoGroup.add(sphereMesh);
 
+    // f. 3D Text Lockup if requested
+    if (showText) {
+      // Create 'DONMAY' group
+      const donmayMesh = create3DWord("DONMAY", 13.5, 3.2, blueMaterial);
+      donmayMesh.position.set(38, 1.8, 0);
+      logoGroup.add(donmayMesh);
+
+      // Create 'MEDIA & TECH' group below it
+      const mediaTechMesh = create3DWord("MEDIA & TECH", 6.2, 1.6, goldMaterial);
+      mediaTechMesh.position.set(38, -11.5, 0);
+      logoGroup.add(mediaTechMesh);
+    }
+
+    // Dynamic auto-centering centroid adjustment
+    const box = new THREE.Box3().setFromObject(logoGroup);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    logoGroup.children.forEach((child) => {
+      child.position.sub(center);
+    });
+
     group.add(logoGroup);
     scene.add(group);
 
@@ -233,7 +480,7 @@ export default function ThreeLogoCanvas({
     group.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
     // 6. LIGHTING FRAMEWORK
-    const ambientLight = new THREE.AmbientLight(0x5566aa, ambientIntensity * 1.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, ambientIntensity * 1.5);
     scene.add(ambientLight);
 
     const dirLight1 = new THREE.DirectionalLight(new THREE.Color(primaryLightColor), 3.5);
@@ -246,8 +493,14 @@ export default function ThreeLogoCanvas({
 
     // Front-left shoulder strong bright white light to directly illuminate paths
     const frontWhiteLight = new THREE.DirectionalLight(0xffffff, 2.5);
-    frontWhiteLight.position.set(-35, 25, 80);
+    frontWhiteLight.position.set(-60, 60, 150);
     scene.add(frontWhiteLight);
+
+    // Camera light that tracks with the camera view to keep text faces bright
+    const cameraLight = new THREE.DirectionalLight(0xffffff, 2.8);
+    cameraLight.position.set(0, 0, 10);
+    camera.add(cameraLight);
+    scene.add(camera);
 
     const spotlight = new THREE.SpotLight(0xffffff, spotlightIntensity);
     spotlight.position.set(0, 0, 80);
@@ -274,6 +527,11 @@ export default function ThreeLogoCanvas({
     const tick = () => {
       const elapsedTime = clock.getElapsedTime();
 
+      // Update OrbitControls if active
+      if (controls && !spinningDemo) {
+        controls.update();
+      }
+
       // Slow idle organic floating translation / oscillation loop
       if (autoRotate && !spinningDemo) {
         group.rotation.y = Math.sin(elapsedTime * 0.6) * 0.15;
@@ -297,13 +555,61 @@ export default function ThreeLogoCanvas({
 
       // 360-degree perfect reveal sweep loop for export recorder
       if (spinningDemo) {
-        // Perfect 5s periodic rotation
-        // 5 seconds total duration means 1 full rotation is elapsedTime * (2*Pi / 5)
         const duration = 5.0;
-        const angle = (elapsedTime * (Math.PI * 2)) / duration;
-        group.rotation.y = angle;
-        group.rotation.x = Math.sin(angle) * 0.1; // modest look up and down
-        group.position.y = Math.sin(elapsedTime * 1.2) * 0.5;
+        // Periodic time t wrapped around duration to guarantee loop safety
+        const t = elapsedTime % duration;
+
+        if (t === 0 || elapsedTime === 0) {
+          // Exact flat-facing readability alignment at Frame 0 / timestamp 0:00
+          group.rotation.set(0, 0, 0);
+          group.position.set(0, 0, 0);
+          camera.position.set(0, 0, cameraZ);
+        } else if (t < 1.0) {
+          // Seconds 0.0 – 1.0: Gentle elegant tilt-reveal
+          const p = t; // normalized 0.0 to 1.0
+          const smoothP = Math.sin((p * Math.PI) / 2);
+          
+          group.rotation.x = smoothP * 0.18; // gentle pitch forward
+          group.rotation.y = smoothP * 0.25; // gentle horizontal twist
+          group.rotation.z = 0;
+          group.position.y = 0;
+
+          camera.position.z = cameraZ - smoothP * 30; // camera moves in slightly
+          camera.position.x = 0;
+          camera.position.y = 0;
+        } else if (t < 3.5) {
+          // Seconds 1.0 – 3.5: Execute controlled floating oscillation and horizontal rotation sweep
+          const p = (t - 1.0) / 2.5; // normalized 0.0 to 1.0
+          
+          // Floating oscillation (vertical float wave)
+          const oscillation = Math.sin(p * Math.PI * 2) * 2.5;
+          group.position.y = oscillation;
+
+          // Minor horizontal sweep and tilt (starting from values at end of phase 1)
+          group.rotation.x = 0.18 + Math.sin(p * Math.PI) * 0.12;
+          group.rotation.y = 0.25 - p * 0.8; // sweeps from 0.25 down to -0.55
+          group.rotation.z = Math.sin(p * Math.PI) * 0.04;
+
+          camera.position.z = (cameraZ - 30) + Math.sin(p * Math.PI) * 15;
+          camera.position.x = Math.sin(p * Math.PI) * 20;
+          camera.position.y = Math.cos(p * Math.PI) * 5;
+        } else {
+          // Seconds 3.5 – 5.0 (Phase 3): Smoothly interpolate (LERP) coordinates back to 0,0,0
+          const p = (t - 3.5) / 1.5; // normalized 0.0 to 1.0
+          const easeP = (1.0 - Math.cos(p * Math.PI)) / 2.0; // Cosine smooth ease-back
+
+          group.rotation.x = (1.0 - easeP) * 0.18;
+          group.rotation.y = (1.0 - easeP) * (-0.55);
+          group.rotation.z = 0;
+          group.position.y = 0;
+
+          // LERP camera position back to exactly cameraZ
+          camera.position.z = THREE.MathUtils.lerp(cameraZ - 30, cameraZ, easeP);
+          camera.position.x = THREE.MathUtils.lerp(20, 0, easeP);
+          camera.position.y = THREE.MathUtils.lerp(5, 0, easeP);
+        }
+
+        camera.lookAt(0, 0, 0);
 
         // Spotlight circles around
         spotlight.position.x = Math.cos(elapsedTime * 1.5) * 35;
@@ -330,6 +636,9 @@ export default function ThreeLogoCanvas({
       window.removeEventListener("mousemove", handleMouseMove);
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
       resizeObserver.disconnect();
+      if (controls) {
+        controls.dispose();
+      }
       if (rendererRef.current) {
         rendererRef.current.dispose();
       }
@@ -361,6 +670,7 @@ export default function ThreeLogoCanvas({
     ambientIntensity,
     spotlightIntensity,
     cameraZ,
+    showText,
   ]);
 
   // SVG Fallback for low-spec/WebGL-restricted devices or contexts
