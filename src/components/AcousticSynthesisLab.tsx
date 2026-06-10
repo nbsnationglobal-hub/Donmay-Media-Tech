@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Music, Sparkles, ShieldCheck, PlayCircle, Trophy, 
-  Tv, Heart, ArrowLeft, Layers, Sliders, Volume2, Mic, CheckCircle
+  Tv, Heart, ArrowLeft, Layers, Sliders, Volume2, Mic, CheckCircle, Loader2
 } from "lucide-react";
 import OnboardingTerminal from "./OnboardingTerminal";
 import BrandLogoExporter from "./BrandLogoExporter";
@@ -38,6 +38,133 @@ export default function AcousticSynthesisLab({ onBackToHome, onEnrollContract }:
   const track1Ref = useRef<HTMLAudioElement | null>(null);
   const track2Ref = useRef<HTMLAudioElement | null>(null);
   const track3Ref = useRef<HTMLAudioElement | null>(null);
+
+  // --- FEATURES 3 & 4: NEW CYBER STATES ---
+  const [lyricTheme, setLyricTheme] = useState<string>("");
+  const [generatedLyrics, setGeneratedLyrics] = useState<string>("");
+  const [isGeneratingLyrics, setIsGeneratingLyrics] = useState<boolean>(false);
+  const [lyricCopied, setLyricCopied] = useState<boolean>(false);
+
+  const [briefTempo, setBriefTempo] = useState<"Energetic" | "Melancholic" | "Majestic">("Energetic");
+  const [briefInstrument, setBriefInstrument] = useState<"Grand Piano" | "Cyber Synth" | "Orchestral Strings">("Grand Piano");
+  const [briefGoal, setBriefGoal] = useState<"Social Media Ad" | "Private Celebration" | "Podcast Backdrop">("Social Media Ad");
+  const [briefCopied, setBriefCopied] = useState<boolean>(false);
+
+  const handleGenerateLyrics = () => {
+    if (!lyricTheme.trim()) return;
+    setIsGeneratingLyrics(true);
+    setLyricCopied(false);
+
+    // Simulate epic matrix compilation delay
+    setTimeout(() => {
+      const keyword = lyricTheme.trim();
+      const themeLower = keyword.toLowerCase();
+      let compiled = "";
+
+      if (themeLower.includes("wedding") || themeLower.includes("anniversary") || themeLower.includes("marriage") || themeLower.includes("love") || themeLower.includes("romance") || themeLower.includes("marry")) {
+        // Romantic / Wedding / Anniversary Theme
+        compiled = `--- BESPOKE ROMANTIC SONGBOOK FOR: "${keyword.toUpperCase()}" ---
+
+[VERSE_01]
+From the first step we took upon this open road
+Every laughter we shared, every heavy load we bore
+I watched the horizon paint your face in gold
+A beautiful story of devotion waiting to unfold
+"${keyword}" is the melody of our forever.
+
+[CHORUS]
+Through the seasons of life, hand in hand we will stand
+Building our dreams across the shifting sand
+With every sunrise, my devotion grows deep
+Promises we made, promises we will always keep
+No distance can alter the warmth of your touch
+In this timeless journey, I love you so much!
+
+[VERSE_02]
+Years may pass by like leaves on the breeze
+But our love remains steady as ancient trees
+Walking together, finding beauty in the small things
+Grateful for every single blessing that each morning brings
+Two hearts beating softly, united and true.`;
+      } else if (themeLower.includes("birthday") || themeLower.includes("born") || themeLower.includes("bday") || themeLower.includes("celebrat")) {
+        // Birthday / Joyful Celebration Theme
+        compiled = `--- CELEBRATORIAL MILESTONE HARMONY FOR: "${keyword.toUpperCase()}" ---
+
+[VERSE_01]
+The calendar turns, and the candles start to glow
+A beautiful reflection of how much you've helped us grow
+Gathered in real warmth, with spirits running high
+Toasting to another wonderful journey round the sun in the sky
+"${keyword}" stands for the joy that we share.
+
+[CHORUS]
+Raise up a glass to the memories we've made
+To the light in your eyes that will never fade!
+May this milestone bring laughter and peace with every stride
+With good friends, deep gratitude, and family by your side!
+Here's to the future, the stories still untold
+Watch the magic of this spectacular day unfold!
+
+[VERSE_02]
+Let the music play loud, let the dancing begin
+Cherishing the beautiful life that you've built within
+Every dream is a spark, every smile is a key
+Celebrating a soul that is wonderfully happy and free
+May your path be bright and your heart find its song!`;
+      } else {
+        // Corporate, Commercial, Business or Default Theme
+        compiled = `--- COMMERCIAL SPECIFICATION BLUEPRINT FOR: "${keyword.toUpperCase()}" ---
+
+[VERSE_01]
+Through the market dynamics, our vision starts to scale
+We deliver core momentum where others often fail
+With absolute integrity and specifications aligned
+Pioneering absolute excellence through the depth of design
+"${keyword}" is the benchmark of the system we build.
+
+[CHORUS]
+We rise above the noise of the classical trade
+We are the industry standard that our team has made!
+The quarterly roadmap is clean, our delivery is clear
+Forging a reliable commercial-grade frontier!
+Enterprise efficiency runs direct in the team
+Exceeding target metrics, fulfilling the dream!
+
+[VERSE_02]
+Every operations node is now online and optimized
+Our strategic integration has been fully realized
+Woven directly around target compliance and trust
+We drive high return, doing what we must
+To elevate the brand and keep our standard premium!`;
+      }
+
+      setGeneratedLyrics(compiled);
+      setIsGeneratingLyrics(false);
+    }, 850);
+  };
+
+  const handleCopyLyrics = () => {
+    navigator.clipboard.writeText(generatedLyrics).then(() => {
+      setLyricCopied(true);
+      setTimeout(() => setLyricCopied(false), 2000);
+    });
+  };
+
+  const handleCopyBrief = () => {
+    const briefText = `--- ACOUSTIC SPECIFICATION BRIEF ---
+TEMPO COEFFICIENT: [${briefTempo.toUpperCase()}]
+PRIMARY TIMBRE:    [${briefInstrument.toUpperCase()}]
+VECTOR DEPLOYMENT:  [${briefGoal.toUpperCase()}]
+STATUS:             SPECIFICATION_COMPILE_SUCCESS
+SYSTEM_VALIDATION:  ONLINE [GATEWAY-SECURE]
+TIMESTAMP:          ${new Date().toISOString()}
+-------------------------------------`;
+
+    navigator.clipboard.writeText(briefText).then(() => {
+      setBriefCopied(true);
+      setTimeout(() => setBriefCopied(false), 2000);
+    });
+  };
 
   const toggleTrack = (trackId: string) => {
     const refsMap: { [key: string]: React.RefObject<HTMLAudioElement | null> } = {
@@ -241,21 +368,80 @@ export default function AcousticSynthesisLab({ onBackToHome, onEnrollContract }:
 
                 <div className="flex flex-col gap-5">
                   {/* Status Node 01 */}
-                  <div className="p-4 rounded-lg border border-[#1C64F2]/10 bg-black/40 hover:border-[#00F0FF]/30 transition-all">
-                    <div className="flex justify-between items-center mb-1.5">
-                      <span className="font-mono text-[#00F0FF] text-[9.5px] font-black tracking-widest uppercase">
-                        [01] LYRIC COMPOSITION MATRIX
-                      </span>
-                      <span className="font-mono text-[8px] text-[#A0AEC0] uppercase tracking-wide px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
-                        LAYER_CORE
-                      </span>
+                  <div className="p-4 rounded-lg border border-[#1C64F2]/10 bg-black/40 hover:border-[#00F0FF]/30 transition-all flex flex-col gap-3">
+                    <div>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="font-mono text-[#00F0FF] text-[9.5px] font-black tracking-widest uppercase">
+                          [01] LYRIC COMPOSITION MATRIX
+                        </span>
+                        <span className="font-mono text-[8px] text-[#A0AEC0] uppercase tracking-wide px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
+                          LAYER_CORE
+                        </span>
+                      </div>
+                      <h4 className="font-display font-medium text-xs text-white uppercase tracking-wider mb-2">
+                        Tailored Narrative Architectures
+                      </h4>
+                      <p className="font-sans text-[11.5px] text-neutral-400 uppercase tracking-wide leading-relaxed">
+                        We script foundational conceptual scopes and compose rich, original song lyrics customized completely around your core objectives, brand messaging guidelines, or custom celebration triggers.
+                      </p>
                     </div>
-                    <h4 className="font-display font-medium text-xs text-white uppercase tracking-wider mb-2">
-                      Tailored Narrative Architectures
-                    </h4>
-                    <p className="font-sans text-[11.5px] text-neutral-400 uppercase tracking-wide leading-relaxed">
-                      We script foundational conceptual scopes and compose rich, original song lyrics customized completely around your core objectives, brand messaging guidelines, or custom celebration triggers.
-                    </p>
+
+                    {/* BESPOKE LYRIC GENERATION SANDBOX */}
+                    <div className="p-3 bg-black/60 border border-[#1C64F2]/25 rounded flex flex-col gap-2.5">
+                      <span className="font-mono text-[8px] text-[#00F0FF] uppercase tracking-widest font-black flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-[#00F0FF]" /> Live Lyric Constructor Sandbox
+                      </span>
+                      <div className="flex flex-col gap-1">
+                        <input
+                          type="text"
+                          value={lyricTheme}
+                          onChange={(e) => setLyricTheme(e.target.value)}
+                          placeholder="ENTER SONG THEME (e.g., 'A modern logistics startup 5th anniversary')"
+                          className="w-full bg-[#040714] border border-[#1C64F2]/25 rounded px-2.5 py-1.5 font-mono text-[10px] text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-[#00F0FF] transition-all"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleGenerateLyrics}
+                        disabled={isGeneratingLyrics || !lyricTheme.trim()}
+                        className={`w-full py-2 font-mono text-[9px] font-black tracking-wider uppercase rounded transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          lyricTheme.trim()
+                            ? "bg-[#00F0FF]/15 hover:bg-[#00F0FF] hover:text-black border border-[#00F0FF]/35 text-[#00F0FF]"
+                            : "bg-[#080b16] border border-white/5 text-zinc-600 cursor-not-allowed"
+                        }`}
+                      >
+                        {isGeneratingLyrics ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>COMPILING NARRATIVE MATRIX...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>GENERATE LYRIC STRUCTURE</span>
+                          </>
+                        )}
+                      </button>
+
+                      {generatedLyrics && (
+                        <div className="flex flex-col gap-1.5 animate-fade-in">
+                          <div className="flex justify-between items-center bg-[#070b16] px-2 py-1 rounded border border-[#1c64f2]/20">
+                            <span className="font-mono text-[7.5px] text-emerald-400 uppercase tracking-widest font-bold">
+                              ✓ MATRIX_GENERATION_SUCCESS
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleCopyLyrics}
+                              className="font-mono text-[7.5px] text-zinc-400 hover:text-white uppercase flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded cursor-pointer transition-all hover:bg-white/10"
+                            >
+                              {lyricCopied ? "✓ COPIED" : "COPY MEMORY"}
+                            </button>
+                          </div>
+                          <pre className="p-2 bg-[#040714] border border-[#1C64F2]/15 rounded text-[9.5px] font-mono text-zinc-300 overflow-y-auto max-h-36 leading-relaxed text-left whitespace-pre-wrap select-text">
+                            {generatedLyrics}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Status Node 02 */}
@@ -369,6 +555,12 @@ export default function AcousticSynthesisLab({ onBackToHome, onEnrollContract }:
                         onEnded={() => setPlayingTrack(null)}
                         className="w-full mt-2 block h-8 accent-[#00F0FF]"
                       />
+                      {playingTrack === "track1" && (
+                        <WaveformVisualizer 
+                          audioElement={track1Ref.current} 
+                          isPlaying={playingTrack === "track1"} 
+                        />
+                      )}
                     </div>
 
                     <div className="flex flex-col items-end gap-2 text-right shrink-0">
@@ -439,6 +631,12 @@ export default function AcousticSynthesisLab({ onBackToHome, onEnrollContract }:
                         onEnded={() => setPlayingTrack(null)}
                         className="w-full mt-2 block h-8 accent-[#00F0FF]"
                       />
+                      {playingTrack === "track2" && (
+                        <WaveformVisualizer 
+                          audioElement={track2Ref.current} 
+                          isPlaying={playingTrack === "track2"} 
+                        />
+                      )}
                     </div>
 
                     <div className="flex flex-col items-end gap-2 text-right shrink-0">
@@ -509,6 +707,12 @@ export default function AcousticSynthesisLab({ onBackToHome, onEnrollContract }:
                         onEnded={() => setPlayingTrack(null)}
                         className="w-full mt-2 block h-8 accent-[#00F0FF]"
                       />
+                      {playingTrack === "track3" && (
+                        <WaveformVisualizer 
+                          audioElement={track3Ref.current} 
+                          isPlaying={playingTrack === "track3"} 
+                        />
+                      )}
                     </div>
 
                     <div className="flex flex-col items-end gap-2 text-right shrink-0">
@@ -539,6 +743,152 @@ export default function AcousticSynthesisLab({ onBackToHome, onEnrollContract }:
                     </div>
                   </div>
 
+                </div>
+              </div>
+
+              {/* ACOUSTIC BRIEF COMPOSER (FEATURE 4) */}
+              <div 
+                className="lg:col-span-12 border border-[#1C64F2]/20 bg-[#060A18]/85 backdrop-blur-md rounded-xl p-6 flex flex-col gap-6"
+                id="acoustic-brief-composer-container"
+              >
+                <div className="flex items-center justify-between border-b border-[#1C64F2]/20 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-[#00F0FF]" />
+                    <span className="font-mono text-[9px] text-white/90 font-bold uppercase tracking-wider">
+                      SPECIFICATION CONTROLLER // ACOUSTIC BRIEF COMPOSER
+                    </span>
+                  </div>
+                  <span className="font-mono text-[8px] text-[#00F0FF] uppercase tracking-widest font-black">
+                    DEPLOYMENT_BUILDER_v1.0.8
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Selector 1: Tempo */}
+                  <div className="flex flex-col gap-2.5">
+                    <span className="font-mono text-[9px] text-[#A0AEC0] uppercase tracking-widest font-bold">
+                      [01] SELECT TEMPO COEFFICIENT:
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["Energetic", "Melancholic", "Majestic"] as const).map((tempo) => (
+                        <button
+                          key={tempo}
+                          type="button"
+                          onClick={() => {
+                            setBriefTempo(tempo);
+                            setBriefCopied(false);
+                          }}
+                          className={`py-2 rounded font-mono text-[8.5px] font-black uppercase tracking-wider border cursor-pointer transition-all ${
+                            briefTempo === tempo
+                              ? "bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] shadow-[0_0_10px_rgba(0,240,255,0.15)]"
+                              : "bg-black/30 border-white/10 text-neutral-400 hover:border-neutral-600 hover:text-white"
+                          }`}
+                        >
+                          {tempo}
+                        </button>
+                      ))}
+                    </div>
+                    <span className="font-sans text-[9px] text-zinc-500 uppercase tracking-wide">
+                      Controls BPM ranges and frequency distribution speed.
+                    </span>
+                  </div>
+
+                  {/* Selector 2: Primary Instrument */}
+                  <div className="flex flex-col gap-2.5">
+                    <span className="font-mono text-[9px] text-[#A0AEC0] uppercase tracking-widest font-bold">
+                      [02] INSTRUMENT TIMBRE MATRIX:
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["Grand Piano", "Cyber Synth", "Orchestral Strings"] as const).map((inst) => (
+                        <button
+                          key={inst}
+                          type="button"
+                          onClick={() => {
+                            setBriefInstrument(inst);
+                            setBriefCopied(false);
+                          }}
+                          className={`py-2 px-1 text-center rounded font-mono text-[8.5px] font-black uppercase tracking-wider border cursor-pointer transition-all ${
+                            briefInstrument === inst
+                              ? "bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] shadow-[0_0_10px_rgba(0,240,255,0.15)]"
+                              : "bg-black/30 border-white/10 text-neutral-400 hover:border-neutral-600 hover:text-white"
+                          }`}
+                        >
+                          {inst.replace("Orchestral ", "")}
+                        </button>
+                      ))}
+                    </div>
+                    <span className="font-sans text-[9px] text-zinc-500 uppercase tracking-wide">
+                      Defines the dominant layer synthesized across acoustic cues.
+                    </span>
+                  </div>
+
+                  {/* Selector 3: Commercial Goal */}
+                  <div className="flex flex-col gap-2.5">
+                    <span className="font-mono text-[9px] text-[#A0AEC0] uppercase tracking-widest font-bold">
+                      [03] DEPLOYMENT TARGET VECTOR:
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["Social Media Ad", "Private Celebration", "Podcast Backdrop"] as const).map((goal) => (
+                        <button
+                          key={goal}
+                          type="button"
+                          onClick={() => {
+                            setBriefGoal(goal);
+                            setBriefCopied(false);
+                          }}
+                          className={`py-2 px-1 text-center rounded font-mono text-[8.5px] font-black uppercase tracking-wider border cursor-pointer transition-all ${
+                            briefGoal === goal
+                              ? "bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] shadow-[0_0_10px_rgba(0,240,255,0.15)]"
+                              : "bg-black/30 border-white/10 text-neutral-400 hover:border-neutral-600 hover:text-white"
+                          }`}
+                        >
+                          {goal.split(" ")[0]}
+                        </button>
+                      ))}
+                    </div>
+                    <span className="font-sans text-[9px] text-zinc-500 uppercase tracking-wide">
+                      Applies unique mastering ratios optimized for specific runtimes.
+                    </span>
+                  </div>
+                </div>
+
+                {/* SPECIFICATION BRIEF PREVIEW BLOCK */}
+                <div className="border border-[#1C64F2]/20 rounded-lg p-4 bg-black/40 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                  <div className="flex-1 flex flex-col gap-1.5">
+                    <span className="font-mono text-[8px] text-[#00F0FF] tracking-widest font-bold uppercase block">
+                      // COMPILED DIRECTIVE METADATA BLOCK
+                    </span>
+                    <pre className="font-mono text-[10px] text-zinc-300 bg-[#030611] border border-[#1C64F2]/15 p-3 rounded leading-relaxed text-left max-w-full overflow-x-auto select-test select-text">
+                      {`--- ACOUSTIC SPECIFICATION BRIEF ---
+TEMPO COEFFICIENT: [${briefTempo.toUpperCase()}]
+PRIMARY TIMBRE:    [${briefInstrument.toUpperCase()}]
+VECTOR DEPLOYMENT:  [${briefGoal.toUpperCase()}]
+STATUS:             SPECIFICATION_COMPILE_SUCCESS
+SYSTEM_VALIDATION:  ONLINE [GATEWAY-SECURE]
+TIMESTAMP:          ${new Date().toISOString()}
+-------------------------------------`}
+                    </pre>
+                  </div>
+
+                  <div className="flex flex-col justify-center shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleCopyBrief}
+                      className="h-full px-5 py-3 bg-[#00F0FF] hover:bg-white text-[#040714] font-mono text-[10px] font-black tracking-widest uppercase rounded shadow-[0_0_15px_rgba(0,240,255,0.25)] hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2 font-bold"
+                    >
+                      {briefCopied ? (
+                        <>
+                          <CheckCircle className="w-4 h-4 text-[#040714]" />
+                          <span>✓ SPECS COPIED</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4 text-[#040714]" />
+                          <span>COPY BRIEF DIRECTIVE</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -650,6 +1000,137 @@ export default function AcousticSynthesisLab({ onBackToHome, onEnrollContract }:
           />
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// --- FEATURE 1: WAVEFORM VISUALIZER COMPONENT ---
+interface WaveformVisualizerProps {
+  audioElement: HTMLAudioElement | null;
+  isPlaying: boolean;
+}
+
+function WaveformVisualizer({ audioElement, isPlaying }: WaveformVisualizerProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resizeCanvas = () => {
+      canvas.width = canvas.parentElement?.clientWidth || 400;
+      canvas.height = 48;
+    };
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    let phase = 0;
+
+    const draw = () => {
+      if (!canvasRef.current) return;
+      animationRef.current = requestAnimationFrame(draw);
+
+      const width = canvas.width;
+      const height = canvas.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw technical blueprint grid lines
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.04)";
+      ctx.lineWidth = 1;
+      for (let i = 12; i < width; i += 24) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, height);
+        ctx.stroke();
+      }
+      for (let j = 8; j < height; j += 12) {
+        ctx.beginPath();
+        ctx.moveTo(0, j);
+        ctx.lineTo(width, j);
+        ctx.stroke();
+      }
+
+      // Draw waveform trace
+      ctx.strokeStyle = "#00F0FF";
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = "rgba(0, 240, 255, 0.4)";
+      ctx.beginPath();
+
+      const numPoints = 180;
+      const sliceWidth = width / numPoints;
+      let x = 0;
+
+      // Progress animation phase
+      if (isPlaying) {
+        phase += 0.15;
+      } else {
+        phase += 0.01;
+      }
+
+      for (let i = 0; i <= numPoints; i++) {
+        const ratio = i / numPoints;
+        const envelope = Math.sin(ratio * Math.PI); // Smooth fade out at edges
+        let y = height / 2;
+
+        if (isPlaying) {
+          // Complex sum-of-sines representing active frequency domains
+          const wave1 = Math.sin(ratio * Math.PI * 6 + phase) * 14;
+          const wave2 = Math.sin(ratio * Math.PI * 14 - phase * 1.6) * 6;
+          const wave3 = Math.sin(ratio * Math.PI * 26 + phase * 0.9) * 3;
+          const jitter = (Math.random() - 0.5) * 1.5; // realistic micro-fluctuations
+          y += (wave1 + wave2 + wave3 + jitter) * envelope;
+        } else {
+          // Soft idle resting state
+          const wave1 = Math.sin(ratio * Math.PI * 4 + phase) * 1.2;
+          const jitter = (Math.random() - 0.5) * 0.4;
+          y += (wave1 + jitter) * envelope;
+        }
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+
+        x += sliceWidth;
+      }
+
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    };
+
+    draw();
+
+    return () => {
+      window.removeEventListener("resize", resizeCanvas);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [audioElement, isPlaying]);
+
+  return (
+    <div className="w-full mt-3 flex flex-col gap-1 text-left">
+      <div className="flex justify-between items-center px-1">
+        <span className="font-mono text-[8.5px] text-[#00F0FF] tracking-wider uppercase flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 bg-[#00F0FF] rounded-full animate-ping" />
+          REALTIME OSCILLOSCOPE MONITOR
+        </span>
+        <span className="font-mono text-[8px] text-neutral-500">
+          256_SAMPLES / MATRIX_STABLE_OK
+        </span>
+      </div>
+      <div className="relative border border-[#00F0FF]/25 bg-[#030611] rounded overflow-hidden">
+        <canvas ref={canvasRef} className="block w-full h-12" />
+        <div className="absolute right-2 bottom-1 font-mono text-[7px] text-[#00F0FF]/40 tracking-widest uppercase">
+          WAVEFORM ANALYSIS DATA
+        </div>
+      </div>
     </div>
   );
 }
