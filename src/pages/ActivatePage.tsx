@@ -266,23 +266,32 @@ export default function ActivatePage() {
                 </div>
 
                 {/* Submission button */}
-                <button
-                  type="submit"
-                  disabled={isCompiling}
-                  className="w-full mt-4 py-3 bg-gradient-to-r from-[#1C64F2] via-[#10B981] to-[#00F0FF] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-[0.2em] font-black rounded cursor-pointer transition-colors hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] relative overflow-hidden flex items-center justify-center gap-2"
-                >
-                  {isCompiling ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                      <span>INITIALIZING SECURE ESCROW BUILD...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>COMPILE &amp; DEPLOY GATEWAY ONBOARDER</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/")}
+                    className="w-full py-3 border border-red-500/30 hover:border-red-500 hover:bg-red-500/5 text-red-400 hover:text-white font-mono text-[10.5px] uppercase tracking-[0.2em] font-black rounded cursor-pointer transition-colors text-center"
+                  >
+                    CANCEL &amp; EXIT PAGE
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isCompiling}
+                    className="w-full py-3 bg-gradient-to-r from-[#1C64F2] via-[#10B981] to-[#00F0FF] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-[0.2em] font-black rounded cursor-pointer transition-colors hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] relative overflow-hidden flex items-center justify-center gap-2"
+                  >
+                    {isCompiling ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                        <span>COMPILING BUILD...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>COMPILE &amp; DEPLOY</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
 
               </form>
 

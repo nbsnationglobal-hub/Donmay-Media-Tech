@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Music, Sparkles, ShieldCheck, PlayCircle, Trophy, 
@@ -32,6 +32,38 @@ export default function AcousticSynthesisLab({ onBackToHome, onEnrollContract }:
     price: string;
     tier?: string;
   } | null>(null);
+
+  const [playingTrack, setPlayingTrack] = useState<string | null>(null);
+
+  const track1Ref = useRef<HTMLAudioElement | null>(null);
+  const track2Ref = useRef<HTMLAudioElement | null>(null);
+  const track3Ref = useRef<HTMLAudioElement | null>(null);
+
+  const toggleTrack = (trackId: string) => {
+    const refsMap: { [key: string]: React.RefObject<HTMLAudioElement | null> } = {
+      track1: track1Ref,
+      track2: track2Ref,
+      track3: track3Ref,
+    };
+
+    const targetRef = refsMap[trackId]?.current;
+    if (!targetRef) return;
+
+    // Pause all other tracks
+    Object.entries(refsMap).forEach(([key, refObj]) => {
+      if (key !== trackId && refObj.current) {
+        refObj.current.pause();
+      }
+    });
+
+    if (playingTrack === trackId) {
+      targetRef.pause();
+      setPlayingTrack(null);
+    } else {
+      targetRef.play().catch((err) => console.log("Playback was blocked or failed", err));
+      setPlayingTrack(trackId);
+    }
+  };
 
   const packages = [
     {
@@ -180,66 +212,333 @@ export default function AcousticSynthesisLab({ onBackToHome, onEnrollContract }:
               </div>
             </div>
 
-            {/* SPECIALIZATION CORES */}
-            <div className="mb-24 grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+            {/* WORKSPACE LAYOUT: GENERATION PROTOCOL & SONIC CANVAS */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-24 items-stretch" id="sound-lab-workspace">
               
-              {/* SPECIALIZATION 1 */}
-              <div className="relative p-8 rounded-xl border border-[#1C64F2]/20 bg-[#080B1C]/60 backdrop-blur-md hover:border-[#00F0FF]/40 transition-all flex flex-col gap-5">
-                <div className="absolute right-4 top-4 p-2 bg-[#00F0FF]/5 rounded-full border border-[#00F0FF]/15">
-                  <Tv className="w-5 h-5 text-[#00F0FF]" />
-                </div>
-                <div>
-                  <span className="font-mono text-[#00F0FF] text-[9.5px] font-black uppercase tracking-widest block mb-1">SPECIFICATION LAYER_01 //</span>
-                  <h3 className="font-display font-black text-xl text-white tracking-wider uppercase">
-                    CINEMATIC MEDIA SCORING
-                  </h3>
-                </div>
-                <p className="font-sans text-neutral-400 text-xs md:text-sm leading-relaxed uppercase tracking-wider">
-                  High-pacing theatrical movie background scores, dynamic trailers, and immersive television landscapes. We custom-mix electronic arrangements, synth basslines, and traditional orchestral elements to fit your visual keyframes.
-                </p>
-                <div className="flex flex-col gap-2.5 mt-2">
-                  <div className="flex items-center gap-2 text-white font-mono text-[9.5px] uppercase">
-                    <span className="w-1.5 h-1.5 bg-[#00F0FF] rounded-full" />
-                    <span>Trailer and Promo Cuts (Full Intensity Mix)</span>
+              {/* LEFT PANEL: The Generation Protocol */}
+              <div 
+                className="protocol-panel lg:col-span-5 border border-[#1C64F2]/20 bg-[#060A18]/80 backdrop-blur-md rounded-xl p-6 flex flex-col gap-6"
+                id="generation-protocol-container"
+              >
+                {/* Header status bar */}
+                <div className="flex items-center justify-between border-b border-[#1C64F2]/20 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-[#00F0FF]" />
+                    <span className="font-mono text-[9px] text-white/90 font-bold uppercase tracking-wider">
+                      SYSTEM: GENERATION PROTOCOL
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 text-white font-mono text-[9.5px] uppercase">
-                    <span className="w-1.5 h-1.5 bg-[#00F0FF] rounded-full" />
-                    <span>Atmospheric soundscapes &amp; drone pads</span>
+                  <div className="flex items-center gap-2 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                    <span className="font-mono text-[8.5px] text-emerald-400 font-extrabold uppercase tracking-widest">
+                      ONLINE
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 text-white font-mono text-[9.5px] uppercase">
-                    <span className="w-1.5 h-1.5 bg-[#00F0FF] rounded-full" />
-                    <span>AI-assisted orchestral synthesis integration</span>
+                </div>
+
+                <div className="flex flex-col gap-5">
+                  {/* Status Node 01 */}
+                  <div className="p-4 rounded-lg border border-[#1C64F2]/10 bg-black/40 hover:border-[#00F0FF]/30 transition-all">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="font-mono text-[#00F0FF] text-[9.5px] font-black tracking-widest uppercase">
+                        [01] LYRIC COMPOSITION MATRIX
+                      </span>
+                      <span className="font-mono text-[8px] text-[#A0AEC0] uppercase tracking-wide px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
+                        LAYER_CORE
+                      </span>
+                    </div>
+                    <h4 className="font-display font-medium text-xs text-white uppercase tracking-wider mb-2">
+                      Tailored Narrative Architectures
+                    </h4>
+                    <p className="font-sans text-[11.5px] text-neutral-400 uppercase tracking-wide leading-relaxed">
+                      We script foundational conceptual scopes and compose rich, original song lyrics customized completely around your core objectives, brand messaging guidelines, or custom celebration triggers.
+                    </p>
+                  </div>
+
+                  {/* Status Node 02 */}
+                  <div className="p-4 rounded-lg border border-[#1C64F2]/10 bg-black/40 hover:border-[#00F0FF]/30 transition-all">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="font-mono text-[#00F0FF] text-[9.5px] font-black tracking-widest uppercase">
+                        [02] AI SYNTHESIS ENGINE MODULE
+                      </span>
+                      <span className="font-mono text-[8px] text-purple-400 uppercase tracking-wide px-1.5 py-0.5 bg-purple-500/5 rounded border border-purple-500/10">
+                        NEURAL_PIPELINE
+                      </span>
+                    </div>
+                    <h4 className="font-display font-medium text-xs text-white uppercase tracking-wider mb-2">
+                      Elite Neural Audio Compilation
+                    </h4>
+                    <p className="font-sans text-[11.5px] text-neutral-400 uppercase tracking-wide leading-relaxed">
+                      Our production pipeline leverages state-of-the-art neural music models (Suno AI) integrated alongside bespoke multi-threaded synthesizers and custom frequency equalizers to yield studio-grade waveforms.
+                    </p>
+                  </div>
+
+                  {/* Status Node 03 */}
+                  <div className="p-4 rounded-lg border border-[#1C64F2]/10 bg-black/40 hover:border-[#00F0FF]/30 transition-all">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="font-mono text-[#00F0FF] text-[9.5px] font-black tracking-widest uppercase">
+                        [03] COMMERCIAL RIGHTS GUARANTEE
+                      </span>
+                      <span className="font-mono text-[8px] text-emerald-400 uppercase tracking-wide px-1.5 py-0.5 bg-emerald-500/5 rounded border border-emerald-500/10">
+                        LEGAL_COMPLIANT
+                      </span>
+                    </div>
+                    <h4 className="font-display font-medium text-xs text-white uppercase tracking-wider mb-2">
+                      100% Legal Ownership Transfer
+                    </h4>
+                    <p className="font-sans text-[11.5px] text-neutral-400 uppercase tracking-wide leading-relaxed">
+                      Enjoy absolute, permanent legal security. Every generated track delivers commercial-grade licensing, securing legal clearance for media advertisements, platform monetizations, broadcast videos, and corporate portfolios.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Footer status matrix block */}
+                <div className="mt-auto pt-4 border-t border-[#1C64F2]/10 bg-[#080B1C]/30 p-3 rounded-lg flex flex-col gap-1">
+                  <div className="flex justify-between text-[8px] font-mono uppercase tracking-widest text-[#A0AEC0]">
+                    <span>FLOW MATRIX ENGINE:</span>
+                    <span className="text-[#00F0FF]">ACTIVE [60 FPS]</span>
+                  </div>
+                  <div className="flex justify-between text-[8px] font-mono uppercase tracking-widest text-[#A0AEC0]">
+                    <span>NEURAL INTERPOLATION:</span>
+                    <span className="text-[#00F0FF]">FUSED COMPACT DELAY</span>
                   </div>
                 </div>
               </div>
 
-              {/* SPECIALIZATION 2 */}
-              <div className="relative p-8 rounded-xl border border-purple-500/25 bg-[#080B1C]/60 backdrop-blur-md hover:border-purple-400/40 transition-all flex flex-col gap-5">
-                <div className="absolute right-4 top-4 p-2 bg-purple-500/5 rounded-full border border-purple-500/15">
-                  <Heart className="w-5 h-5 text-purple-400" />
+              {/* RIGHT PANEL: The Sonic Canvas Grid */}
+              <div 
+                className="sonic-canvas lg:col-span-7 border border-[#1C64F2]/20 bg-[#060A18]/80 backdrop-blur-md rounded-xl p-6 flex flex-col gap-6"
+                id="sonic-canvas-grid-container"
+              >
+                {/* Header status bar */}
+                <div className="flex items-center justify-between border-b border-[#1C64F2]/20 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Music className="w-4 h-4 text-[#00F0FF]" />
+                    <span className="font-mono text-[9px] text-white/90 font-bold uppercase tracking-wider">
+                      SONIC CANVAS GRID // STREAM CONTROLLER
+                    </span>
+                  </div>
+                  <span className="font-mono text-[8px] text-neutral-500 uppercase tracking-widest">
+                    SYSTEM NODES: 03
+                  </span>
                 </div>
-                <div>
-                  <span className="font-mono text-purple-400 text-[9.5px] font-black uppercase tracking-widest block mb-1">SPECIFICATION LAYER_02 //</span>
-                  <h3 className="font-display font-black text-xl text-white tracking-wider uppercase">
-                    MONUMENTAL CELEBRATIONS
-                  </h3>
-                </div>
-                <p className="font-sans text-neutral-400 text-xs md:text-sm leading-relaxed uppercase tracking-wider">
-                  Highly emotional, tailored personalized soundtracks engineered specifically for historic life events (Weddings, Anniversaries, Milestones, and Birthdays). Let us draft your bespoke audio masterpiece reflecting your exact journey.
-                </p>
-                <div className="flex flex-col gap-2.5 mt-2">
-                  <div className="flex items-center gap-2 text-white font-mono text-[9.5px] uppercase">
-                    <span className="w-1.5 h-1.5 bg-purple-400 rounded-full" />
-                    <span>Tailored Wedding Processionals (Bespoke Themes)</span>
+
+                {/* Grid of Preview Audio Cards */}
+                <div className="flex flex-col gap-4">
+                  
+                  {/* TRACK CARD 01 */}
+                  <div 
+                    className={`p-4 rounded-lg border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 bg-black/40 ${
+                      playingTrack === "track1" 
+                        ? "border-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.1)] bg-[#00F0FF]/5" 
+                        : "border-[#1C64F2]/10 hover:border-[#1C64F2]/30"
+                    }`}
+                    id="track-card-01"
+                  >
+                    <div className="flex-1 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-mono text-[#00F0FF] text-[10px] font-black tracking-widest uppercase">
+                          [TRACK_01]
+                        </span>
+                        <div className="flex gap-1.5">
+                          <span className="font-mono text-[7px] text-[#A0AEC0] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
+                            COMMERCIAL BGM
+                          </span>
+                          <span className="font-mono text-[7px] text-amber-400 uppercase tracking-wider px-1.5 py-0.5 bg-amber-500/5 rounded border border-amber-500/10">
+                            RIGHTS INCLUDED
+                          </span>
+                        </div>
+                      </div>
+                      <h4 className="font-display font-medium text-xs md:text-sm text-white uppercase tracking-wider">
+                        Corporate Sonic Identity
+                      </h4>
+                      <p className="font-sans text-[11px] text-neutral-400 uppercase tracking-wide leading-relaxed">
+                        A modern, inspiring synth-driven background progression calibrated for corporate branding videos, ads, and keynotes.
+                      </p>
+                      
+                      {/* Standard HTML audio player styled subtle */}
+                      <audio 
+                        ref={track1Ref}
+                        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+                        preload="none"
+                        onPlay={() => setPlayingTrack("track1")}
+                        onPause={() => { if (playingTrack === "track1") setPlayingTrack(null); }}
+                        onEnded={() => setPlayingTrack(null)}
+                        className="w-full mt-2 block h-8 accent-[#00F0FF]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2 text-right shrink-0">
+                      <button
+                        onClick={() => toggleTrack("track1")}
+                        className={`w-full md:w-auto px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          playingTrack === "track1"
+                            ? "bg-[#00F0FF] text-[#040714] shadow-[0_0_12px_rgba(0,240,255,0.4)] border-[#00F0FF]"
+                            : "bg-[#080B1C]/80 border border-[#1C64F2]/35 text-[#00F0FF] hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]"
+                        }`}
+                      >
+                        {playingTrack === "track1" ? (
+                          <>
+                            <span>⏸ PAUSE PROTOCOL</span>
+                            {/* Equalizer animation */}
+                            <div className="flex items-end gap-[1.5px] h-2.5 w-3 overflow-hidden">
+                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-full" style={{ animationDuration: "0.6s" }} />
+                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-2" style={{ animationDuration: "1s" }} />
+                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-3" style={{ animationDuration: "0.8s" }} />
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span>▶ EXECUTE PREVIEW</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-white font-mono text-[9.5px] uppercase">
-                    <span className="w-1.5 h-1.5 bg-purple-400 rounded-full" />
-                    <span>Original milestone celebration scores</span>
+
+                  {/* TRACK CARD 02 */}
+                  <div 
+                    className={`p-4 rounded-lg border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 bg-black/40 ${
+                      playingTrack === "track2" 
+                        ? "border-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.1)] bg-[#00F0FF]/5" 
+                        : "border-[#1C64F2]/10 hover:border-[#1C64F2]/30"
+                    }`}
+                    id="track-card-02"
+                  >
+                    <div className="flex-1 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-mono text-[#00F0FF] text-[10px] font-black tracking-widest uppercase">
+                          [TRACK_02]
+                        </span>
+                        <div className="flex gap-1.5">
+                          <span className="font-mono text-[7px] text-[#A0AEC0] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
+                            MILESTONE SCORE
+                          </span>
+                          <span className="font-mono text-[7px] text-purple-400 uppercase tracking-wider px-1.5 py-0.5 bg-purple-500/5 rounded border border-purple-500/10">
+                            ACOUSTIC PIANO
+                          </span>
+                        </div>
+                      </div>
+                      <h4 className="font-display font-medium text-xs md:text-sm text-white uppercase tracking-wider">
+                        Bespoke Anniversary &amp; Wedding Score
+                      </h4>
+                      <p className="font-sans text-[11px] text-neutral-400 uppercase tracking-wide leading-relaxed">
+                        A beautiful piano arrangement blending romantic orchestration for grand entrance ceremony processionals and milestone reels.
+                      </p>
+                      
+                      {/* Standard HTML audio player styled subtle */}
+                      <audio 
+                        ref={track2Ref}
+                        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+                        preload="none"
+                        onPlay={() => setPlayingTrack("track2")}
+                        onPause={() => { if (playingTrack === "track2") setPlayingTrack(null); }}
+                        onEnded={() => setPlayingTrack(null)}
+                        className="w-full mt-2 block h-8 accent-[#00F0FF]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2 text-right shrink-0">
+                      <button
+                        onClick={() => toggleTrack("track2")}
+                        className={`w-full md:w-auto px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          playingTrack === "track2"
+                            ? "bg-[#00F0FF] text-[#040714] shadow-[0_0_12px_rgba(0,240,255,0.4)] border-[#00F0FF]"
+                            : "bg-[#080B1C]/80 border border-[#1C64F2]/35 text-[#00F0FF] hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]"
+                        }`}
+                      >
+                        {playingTrack === "track2" ? (
+                          <>
+                            <span>⏸ PAUSE PROTOCOL</span>
+                            {/* Equalizer animation */}
+                            <div className="flex items-end gap-[1.5px] h-2.5 w-3 overflow-hidden">
+                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-full" style={{ animationDuration: "0.6s" }} />
+                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-2" style={{ animationDuration: "1s" }} />
+                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-3" style={{ animationDuration: "0.8s" }} />
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span>▶ EXECUTE PREVIEW</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-white font-mono text-[9.5px] uppercase">
-                    <span className="w-1.5 h-1.5 bg-purple-400 rounded-full" />
-                    <span>Original lyrics options &amp; custom vocals synchronization</span>
+
+                  {/* TRACK CARD 03 */}
+                  <div 
+                    className={`p-4 rounded-lg border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 bg-black/40 ${
+                      playingTrack === "track3" 
+                        ? "border-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.1)] bg-[#00F0FF]/5" 
+                        : "border-[#1C64F2]/10 hover:border-[#1C64F2]/30"
+                    }`}
+                    id="track-card-03"
+                  >
+                    <div className="flex-1 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-mono text-[#00F0FF] text-[10px] font-black tracking-widest uppercase">
+                          [TRACK_03]
+                        </span>
+                        <div className="flex gap-1.5">
+                          <span className="font-mono text-[7px] text-[#A0AEC0] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
+                            CELEBRATION THEME
+                          </span>
+                          <span className="font-mono text-[7px] text-[#00F0FF] uppercase tracking-wider px-1.5 py-0.5 bg-[#00F0FF]/5 rounded border border-[#00F0FF]/15">
+                            UPBEAT EDM
+                          </span>
+                        </div>
+                      </div>
+                      <h4 className="font-display font-medium text-xs md:text-sm text-white uppercase tracking-wider">
+                        Custom Celebration / Birthday Theme
+                      </h4>
+                      <p className="font-sans text-[11px] text-neutral-400 uppercase tracking-wide leading-relaxed">
+                        An energetic, rhythmic electronic-dance layout built to deliver optimal high tempos for private events and dynamic celebrations.
+                      </p>
+                      
+                      {/* Standard HTML audio player styled subtle */}
+                      <audio 
+                        ref={track3Ref}
+                        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+                        preload="none"
+                        onPlay={() => setPlayingTrack("track3")}
+                        onPause={() => { if (playingTrack === "track3") setPlayingTrack(null); }}
+                        onEnded={() => setPlayingTrack(null)}
+                        className="w-full mt-2 block h-8 accent-[#00F0FF]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2 text-right shrink-0">
+                      <button
+                        onClick={() => toggleTrack("track3")}
+                        className={`w-full md:w-auto px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          playingTrack === "track3"
+                            ? "bg-[#00F0FF] text-[#040714] shadow-[0_0_12px_rgba(0,240,255,0.4)] border-[#00F0FF]"
+                            : "bg-[#080B1C]/80 border border-[#1C64F2]/35 text-[#00F0FF] hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]"
+                        }`}
+                      >
+                        {playingTrack === "track3" ? (
+                          <>
+                            <span>⏸ PAUSE PROTOCOL</span>
+                            {/* Equalizer animation */}
+                            <div className="flex items-end gap-[1.5px] h-2.5 w-3 overflow-hidden">
+                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-full" style={{ animationDuration: "0.6s" }} />
+                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-2" style={{ animationDuration: "1s" }} />
+                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-3" style={{ animationDuration: "0.8s" }} />
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span>▶ EXECUTE PREVIEW</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
+
                 </div>
               </div>
 
