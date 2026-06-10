@@ -231,7 +231,7 @@ export default function OnboardingTerminal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030611]/95 backdrop-blur-md overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 md:p-8 bg-[#030611]/95 backdrop-blur-md pb-16"
       id="fullscreen-onboarding-terminal"
     >
       <div className="absolute inset-0 bg-radial-at-t from-[#00F0FF]/5 to-transparent pointer-events-none" />
@@ -476,27 +476,36 @@ export default function OnboardingTerminal({
                 STEP 03 // Click below to initialize escrow compilation. The system will compile your directive matrix and visual reference payloads into persistent memory before loading the payment router.
               </p>
 
-              <button
-                type="submit"
-                disabled={isCompiling || !isStep1And2Populated}
-                className={`w-full py-4 font-display text-[11px] font-black tracking-[0.2em] uppercase rounded-lg flex items-center justify-center gap-2.5 cursor-pointer transition-all ${
-                  isStep1And2Populated 
-                    ? "bg-[#00F0FF] hover:bg-white text-[#040714] shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:scale-[1.01] active:scale-[0.99]" 
-                    : "bg-[#0c1630] border border-[#1C64F2]/20 text-neutral-500 cursor-not-allowed opacity-50"
-                }`}
-              >
-                {isCompiling ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>COMPILING PAYLOAD DIRECTIVES...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>{!isStep1And2Populated ? "COMPLETE PROTOCOLS TO PROCEED" : "SUBMIT SPECIFICATIONS & AUTHORIZE SECURE DEPOSIT"}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full py-4 bg-transparent border border-red-500/30 hover:border-red-500 hover:bg-red-500/5 text-red-400 hover:text-white font-display text-[11px] font-black tracking-[0.2em] uppercase rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
+                >
+                  <span>CANCEL &amp; RETURN TO SITE</span>
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCompiling || !isStep1And2Populated}
+                  className={`w-full py-4 font-display text-[11px] font-black tracking-[0.2em] uppercase rounded-lg flex items-center justify-center gap-2.5 cursor-pointer transition-all ${
+                    isStep1And2Populated 
+                      ? "bg-[#00F0FF] hover:bg-white text-[#040714] shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:scale-[1.01] active:scale-[0.99]" 
+                      : "bg-[#0c1630] border border-[#1C64F2]/20 text-neutral-500 cursor-not-allowed opacity-50"
+                  }`}
+                >
+                  {isCompiling ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>COMPILING PAYLOAD...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{!isStep1And2Populated ? "COMPLETE PROTOCOLS" : "SUBMIT & CONTINUE"}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         )}
@@ -555,6 +564,27 @@ export default function OnboardingTerminal({
                 <span>AUTHORIZE VIA SELAR ESCROW ({session.price})</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleCacheState("brief");
+                    setCurrentStep("brief");
+                  }}
+                  className="py-3 px-4 border border-[#1C64F2]/30 hover:border-white text-[#A0AEC0] hover:text-white rounded text-[10px] font-black uppercase tracking-wider transition-all bg-[#03050f] hover:bg-[#080B1C] cursor-pointer text-center"
+                >
+                  ← EDIT DIRECTIVES
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="py-3 px-4 border border-red-500/20 hover:border-red-400/50 hover:bg-red-500/5 text-[#A0AEC0] hover:text-red-400 rounded text-[10px] font-black uppercase tracking-wider transition-all bg-[#03050f] cursor-pointer text-center"
+                >
+                  CANCEL ESCROW
+                </button>
+              </div>
+
               <span className="font-sans text-[7.5px] text-[#A0AEC0] uppercase tracking-widest leading-relaxed px-2">
                 *SYSTEM CONFIRMED: redirection opens secure, encrypted external terminal. Specifications and attachments have been successfully linked and will not be lost.
               </span>
@@ -862,30 +892,52 @@ export default function OnboardingTerminal({
             </label>
 
             {/* Dynamically configured submission buttons */}
-            <button
-              type="submit"
-              disabled={
-                !clientEmail || 
-                !clientName || 
-                (isAlgoTrading && !mt5Id) || 
-                (!isAlgoTrading && (
-                  !termsAgreed || 
-                  attachedFiles.length === 0 || 
-                  !bizDescription.trim() || 
-                  !promoteDirectives.trim() || 
-                  !targetAudience.trim() || 
-                  channelsToTarget.length === 0
-                ))
-              }
-              className={`w-full py-4.5 font-display text-[11px] font-black tracking-[0.2em] uppercase rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-all shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:scale-[1.01] active:scale-[0.99] ${
-                (clientEmail && clientName && (isAlgoTrading ? !!mt5Id : (termsAgreed && attachedFiles.length > 0 && bizDescription.trim() && promoteDirectives.trim() && targetAudience.trim() && channelsToTarget.length > 0)))
-                  ? "bg-[#00F0FF] hover:bg-white text-[#040714] shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:scale-[1.01]" 
-                  : "bg-neutral-800 text-neutral-500 cursor-not-allowed opacity-50 border border-white/5"
-              }`}
-            >
-              <span>{isAlgoTrading ? "INITIALIZE SYSTEM TIER VAULT // REGISTER" : "INITIALIZE AGENCY ONBOARDING // SUBMIT"}</span>
-              <CheckCircle className="w-4 h-4" />
-            </button>
+            <div className="flex flex-col gap-3">
+              <button
+                type="submit"
+                disabled={
+                  !clientEmail || 
+                  !clientName || 
+                  (isAlgoTrading && !mt5Id) || 
+                  (!isAlgoTrading && (
+                    !termsAgreed || 
+                    attachedFiles.length === 0 || 
+                    !bizDescription.trim() || 
+                    !promoteDirectives.trim() || 
+                    !targetAudience.trim() || 
+                    channelsToTarget.length === 0
+                  ))
+                }
+                className={`w-full py-4.5 font-display text-[11px] font-black tracking-[0.2em] uppercase rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-all shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:scale-[1.01] active:scale-[0.99] ${
+                  (clientEmail && clientName && (isAlgoTrading ? !!mt5Id : (termsAgreed && attachedFiles.length > 0 && bizDescription.trim() && promoteDirectives.trim() && targetAudience.trim() && channelsToTarget.length > 0)))
+                    ? "bg-[#00F0FF] hover:bg-white text-[#040714] shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:scale-[1.01]" 
+                    : "bg-neutral-800 text-neutral-500 cursor-not-allowed opacity-50 border border-white/5"
+                }`}
+              >
+                <span>{isAlgoTrading ? "INITIALIZE SYSTEM TIER VAULT // REGISTER" : "INITIALIZE AGENCY ONBOARDING // SUBMIT"}</span>
+                <CheckCircle className="w-4 h-4" />
+              </button>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleCacheState("payment");
+                    setCurrentStep("payment");
+                  }}
+                  className="py-3 px-4 border border-[#1C64F2]/30 hover:border-white text-[#A0AEC0] hover:text-white rounded text-[10px] font-black uppercase tracking-wider transition-all bg-[#03050f] hover:bg-[#080B1C] cursor-pointer text-center"
+                >
+                  ← BACK TO PAYMENT
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="py-3 px-4 border border-red-500/20 hover:border-red-400/50 hover:bg-red-500/5 text-[#A0AEC0] hover:text-red-400 rounded text-[10px] font-black uppercase tracking-wider transition-all bg-[#03050f] cursor-pointer text-center"
+                >
+                  CANCEL &amp; CLOSE
+                </button>
+              </div>
+            </div>
           </form>
         )}
 
