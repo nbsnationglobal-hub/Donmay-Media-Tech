@@ -13,7 +13,7 @@ interface LaunchAnimationProps {
 }
 
 export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
-  const [stage, setStage] = useState<"click_to_start" | "approaching" | "rippling" | "logo_reveal" | "terminal" | "complete">("click_to_start");
+  const [stage, setStage] = useState<"approaching" | "rippling" | "logo_reveal" | "terminal" | "complete">("approaching");
   const [loadProgress, setLoadProgress] = useState(0);
   const [loaderFinished, setLoaderFinished] = useState(false);
   const [currentLineIdx, setCurrentLineIdx] = useState(0);
@@ -75,13 +75,11 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
     }
   };
 
-  const handleStartSequence = () => {
-    // Unlocks browser audio context and plays start sound
+  useEffect(() => {
+    // Start sequence and audio automatic loaders immediately on mount
     playBeep(220, 0.15, "sawtooth", 0.03);
-    setTimeout(() => playBeep(440, 0.2, "triangle", 0.04), 100);
-    setTimeout(() => playBeep(880, 0.4, "sine", 0.05), 200);
-
-    setStage("approaching");
+    const tStart1 = setTimeout(() => playBeep(440, 0.2, "triangle", 0.04), 100);
+    const tStart2 = setTimeout(() => playBeep(880, 0.4, "sine", 0.05), 200);
 
     const t1 = setTimeout(() => {
       setStage("rippling");
@@ -95,10 +93,8 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
       setStage("terminal");
     }, 5600);
 
-    timersRef.current.push(t1, t2, t3);
-  };
+    timersRef.current.push(tStart1, tStart2, t1, t2, t3);
 
-  useEffect(() => {
     return () => {
       // Clean up all timers when component unmounts
       timersRef.current.forEach(clearTimeout);
@@ -298,69 +294,30 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#040714] digital-grid select-none overflow-hidden">
       {/* Top indicator bar */}
-      {stage !== "click_to_start" && (
-        <div className="absolute top-6 left-8 right-8 flex items-center justify-between font-mono text-[10px] tracking-widest text-[#A0AEC0]">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-1.5 h-1.5 bg-[#00F0FF] rounded-full animate-ping" />
-            <span>SYSTEM CORRELATION FEED</span>
-          </div>
-          <div>
-            <span>INITIATIVE: DONMAY</span>
-          </div>
+      <div className="absolute top-6 left-8 right-8 flex items-center justify-between font-mono text-[10px] tracking-widest text-[#A0AEC0]">
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-1.5 h-1.5 bg-[#00F0FF] rounded-full animate-ping" />
+          <span>SYSTEM CORRELATION FEED</span>
         </div>
-      )}
+        <div>
+          <span>INITIATIVE: DONMAY</span>
+        </div>
+      </div>
 
       {/* Skip Button */}
-      {stage !== "click_to_start" && (
-        <button
-          onClick={onComplete}
-          className="absolute bottom-10 px-4 py-2 font-display text-xs tracking-widest text-[#A0AEC0] border border-[#1C64F2]/30 hover:border-[#00F0FF] hover:text-[#FFFFFF] hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] rounded bg-[#080B1C]/50 transition-all cursor-pointer z-50"
-          id="btn-skip-intro"
-        >
-          SKIP INIT_SEQUENCE
-        </button>
-      )}
+      <button
+        onClick={onComplete}
+        className="absolute bottom-10 px-4 py-2 font-display text-xs tracking-widest text-[#A0AEC0] border border-[#1C64F2]/30 hover:border-[#00F0FF] hover:text-[#FFFFFF] hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] rounded bg-[#080B1C]/50 transition-all cursor-pointer z-50"
+        id="btn-skip-intro"
+      >
+        SKIP INIT_SEQUENCE
+      </button>
 
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#1C64F2]/10 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Main Animation Arena */}
       <div className="relative w-full max-w-4xl min-h-[400px] flex items-center justify-center">
-        {/* Phase 0: Click to Start */}
-        {stage === "click_to_start" && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center text-center px-4"
-          >
-            <div className="mb-8 relative flex items-center justify-center">
-              <div className="absolute w-24 h-24 bg-[#00F0FF]/15 rounded-full blur-xl animate-pulse" />
-              <DonmayLogo symbolSize={84} compact={true} />
-            </div>
-
-            <h2 className="font-display text-xl md:text-3xl font-extrabold tracking-[0.25em] text-white">
-              DONMAY PORTAL ACCESS
-            </h2>
-            <p className="font-mono text-xs text-[#00F0FF]/80 tracking-widest mt-2 uppercase font-bold">
-              SECURE MEDIA &amp; SYSTEM ENVIRONMENT
-            </p>
-
-            <button
-              onClick={handleStartSequence}
-              className="mt-10 px-8 py-4 font-mono text-xs tracking-[0.3em] font-bold text-white border border-[#00F0FF]/40 bg-gradient-to-r from-[#1C64F2]/20 to-[#00F0FF]/20 hover:from-[#1C64F2]/40 hover:to-[#00F0FF]/40 rounded cursor-pointer transition-all duration-300 relative group overflow-hidden shadow-[0_0_20px_rgba(0,240,255,0.15)] hover:shadow-[0_0_30px_rgba(0,240,255,0.35)]"
-            >
-              <span className="relative z-10 flex items-center gap-2">
-                INITIALIZE SECURE SYSTEM
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-[#00F0FF]/20 to-[#1C64F2]/20 -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
-            </button>
-
-            <p className="font-sans text-[10px] text-[#A0AEC0] tracking-widest mt-6 uppercase leading-relaxed max-w-xs">
-              Tap or click above to boot technical core diagnostics and activate high-fidelity audio telemetry sounds.
-            </p>
-          </motion.div>
-        )}
-
         {/* Phase 1: Approaching Vectors */}
         {stage === "approaching" && (
           <div className="absolute inset-0 flex items-center justify-between px-10">
