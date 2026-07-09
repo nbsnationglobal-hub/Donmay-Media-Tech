@@ -13,7 +13,7 @@ interface LaunchAnimationProps {
 }
 
 export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
-  const [stage, setStage] = useState<"approaching" | "rippling" | "logo_reveal" | "terminal" | "complete">("approaching");
+  const [stage, setStage] = useState<"click_to_start" | "approaching" | "rippling" | "logo_reveal" | "terminal" | "complete">("click_to_start");
   const [loadProgress, setLoadProgress] = useState(0);
   const [loaderFinished, setLoaderFinished] = useState(false);
   const [currentLineIdx, setCurrentLineIdx] = useState(0);
@@ -24,9 +24,12 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
   const [inputValue, setInputValue] = useState("");
   const [commandHistory, setCommandHistory] = useState<{ text: string; isCommandResult?: boolean }[]>([]);
   const [isMuted, setIsMuted] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
 
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const timersRef = useRef<NodeJS.Timeout[]>([]);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   const fullTextLines = [
     "Initiating Onboarding Sequence... [OK]",
@@ -39,13 +42,18 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
     "To continue, type 'REGISTER' or explore our 'SERVICES'."
   ];
 
-  // Retro computer sound synthesizer
+  // Retro computer sound synthesizer (Optimized single instance to prevent browser block)
   const playBeep = (freq = 800, duration = 0.04, type: OscillatorType = "sine", volume = 0.05) => {
     if (isMuted) return;
     try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContextClass) return;
-      const ctx = new AudioContextClass();
+      if (!audioCtxRef.current) {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtxRef.current = new AudioContextClass();
+        }
+      }
+      const ctx = audioCtxRef.current;
+      if (!ctx) return;
       if (ctx.state === "suspended") {
         ctx.resume();
       }
@@ -67,28 +75,35 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
     }
   };
 
-  useEffect(() => {
-    // 1. Approaches take 2.2 seconds
-    const rippleTimer = setTimeout(() => {
+  const handleStartSequence = () => {
+    // Unlocks browser audio context and plays start sound
+    playBeep(220, 0.15, "sawtooth", 0.03);
+    setTimeout(() => playBeep(440, 0.2, "triangle", 0.04), 100);
+    setTimeout(() => playBeep(880, 0.4, "sine", 0.05), 200);
+
+    setStage("approaching");
+
+    const t1 = setTimeout(() => {
       setStage("rippling");
     }, 2200);
 
-    // 2. Ripple wave expands for 1.2 seconds
-    const logoTimer = setTimeout(() => {
+    const t2 = setTimeout(() => {
       setStage("logo_reveal");
     }, 3400);
 
-    // 3. Logo reveal finishes, switch to terminal instead of instant homepage loading
-    const terminalTimer = setTimeout(() => {
+    const t3 = setTimeout(() => {
       setStage("terminal");
     }, 5600);
 
+    timersRef.current.push(t1, t2, t3);
+  };
+
+  useEffect(() => {
     return () => {
-      clearTimeout(rippleTimer);
-      clearTimeout(logoTimer);
-      clearTimeout(terminalTimer);
+      // Clean up all timers when component unmounts
+      timersRef.current.forEach(clearTimeout);
     };
-  }, [onComplete]);
+  }, []);
 
   // Handle Load Progress counting up
   useEffect(() => {
@@ -102,20 +117,20 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
           playBeep(880, 0.08, "sine", 0.04);
           setTimeout(() => {
             playBeep(1320, 0.12, "sine", 0.04);
-          }, 100);
+          }, 80);
           setTimeout(() => {
             setLoaderFinished(true);
-          }, 400);
+          }, 250);
           return 100;
         }
-        const next = prev + 1;
-        // Pitch climbing sound effect
-        if (next % 3 === 0) {
-          playBeep(300 + next * 5.5, 0.015, "triangle", 0.02);
+        const next = prev + 4; // Fast loading increment
+        // Pitch climbing sound effect (adjusted for faster loader)
+        if (next % 8 === 0) {
+          playBeep(300 + next * 6.5, 0.012, "triangle", 0.02);
         }
-        return next;
+        return next > 100 ? 100 : next;
       });
-    }, 12);
+    }, 10);
 
     return () => clearInterval(interval);
   }, [stage, loaderFinished]);
@@ -131,14 +146,16 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
       const timer = setTimeout(() => {
         setPrintedLines((prev) => [...prev, ""]);
         setCurrentLineIdx((prev) => prev + 1);
-      }, 100);
+      }, 50);
       return () => clearTimeout(timer);
     }
 
     const timer = setTimeout(() => {
+      const step = 4; // print 4 characters at a time for high-speed feel
       if (currentCharIdx < targetLine.length) {
-        setActiveLineText((prev) => prev + targetLine[currentCharIdx]);
-        setCurrentCharIdx((prev) => prev + 1);
+        const nextCharIdx = Math.min(currentCharIdx + step, targetLine.length);
+        setActiveLineText(targetLine.substring(0, nextCharIdx));
+        setCurrentCharIdx(nextCharIdx);
         // Realistic micro clicking sound
         playBeep(900 + Math.random() * 250, 0.01, "sine", 0.02);
       } else {
@@ -152,10 +169,10 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
         } else {
           setTerminalSequenceComplete(true);
           // End chime
-          playBeep(1000, 0.1, "sine", 0.03);
+          playBeep(1000, 0.08, "sine", 0.03);
         }
       }
-    }, targetLine.length > 50 ? 8 : 12);
+    }, 6); // Very short timeout for fast performance
 
     return () => clearTimeout(timer);
   }, [loaderFinished, stage, currentLineIdx, currentCharIdx, terminalSequenceComplete]);
@@ -166,6 +183,35 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
       terminalEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [printedLines, activeLineText, commandHistory, loaderFinished, stage]);
+
+  // Set up redirect countdown when terminal is complete
+  useEffect(() => {
+    if (terminalSequenceComplete) {
+      setRedirectCountdown(3); // Start a snappy 3-second countdown to auto-bypass
+    }
+  }, [terminalSequenceComplete]);
+
+  // Handle countdown ticks
+  useEffect(() => {
+    if (!terminalSequenceComplete || redirectCountdown === null) return;
+    if (redirectCountdown <= 0) {
+      onComplete();
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setRedirectCountdown((prev) => (prev !== null ? prev - 1 : null));
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [terminalSequenceComplete, redirectCountdown, onComplete]);
+
+  // If user starts interacting, pause the countdown so they aren't forced out
+  useEffect(() => {
+    if (inputValue.trim() !== "" || commandHistory.length > 0) {
+      setRedirectCountdown(null);
+    }
+  }, [inputValue, commandHistory]);
 
   const handleTerminalClick = () => {
     if (inputRef.current) {
@@ -252,30 +298,69 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#040714] digital-grid select-none overflow-hidden">
       {/* Top indicator bar */}
-      <div className="absolute top-6 left-8 right-8 flex items-center justify-between font-mono text-[10px] tracking-widest text-[#A0AEC0]">
-        <div className="flex items-center gap-2">
-          <span className="inline-block w-1.5 h-1.5 bg-[#00F0FF] rounded-full animate-ping" />
-          <span>SYSTEM CORRELATION FEED</span>
+      {stage !== "click_to_start" && (
+        <div className="absolute top-6 left-8 right-8 flex items-center justify-between font-mono text-[10px] tracking-widest text-[#A0AEC0]">
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-1.5 h-1.5 bg-[#00F0FF] rounded-full animate-ping" />
+            <span>SYSTEM CORRELATION FEED</span>
+          </div>
+          <div>
+            <span>INITIATIVE: DONMAY</span>
+          </div>
         </div>
-        <div>
-          <span>INITIATIVE: DONMAY</span>
-        </div>
-      </div>
+      )}
 
       {/* Skip Button */}
-      <button
-        onClick={onComplete}
-        className="absolute bottom-10 px-4 py-2 font-display text-xs tracking-widest text-[#A0AEC0] border border-[#1C64F2]/30 hover:border-[#00F0FF] hover:text-[#FFFFFF] hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] rounded bg-[#080B1C]/50 transition-all cursor-pointer z-50"
-        id="btn-skip-intro"
-      >
-        SKIP INIT_SEQUENCE
-      </button>
+      {stage !== "click_to_start" && (
+        <button
+          onClick={onComplete}
+          className="absolute bottom-10 px-4 py-2 font-display text-xs tracking-widest text-[#A0AEC0] border border-[#1C64F2]/30 hover:border-[#00F0FF] hover:text-[#FFFFFF] hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] rounded bg-[#080B1C]/50 transition-all cursor-pointer z-50"
+          id="btn-skip-intro"
+        >
+          SKIP INIT_SEQUENCE
+        </button>
+      )}
 
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#1C64F2]/10 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Main Animation Arena */}
       <div className="relative w-full max-w-4xl min-h-[400px] flex items-center justify-center">
+        {/* Phase 0: Click to Start */}
+        {stage === "click_to_start" && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center text-center px-4"
+          >
+            <div className="mb-8 relative flex items-center justify-center">
+              <div className="absolute w-24 h-24 bg-[#00F0FF]/15 rounded-full blur-xl animate-pulse" />
+              <DonmayLogo symbolSize={84} compact={true} />
+            </div>
+
+            <h2 className="font-display text-xl md:text-3xl font-extrabold tracking-[0.25em] text-white">
+              DONMAY PORTAL ACCESS
+            </h2>
+            <p className="font-mono text-xs text-[#00F0FF]/80 tracking-widest mt-2 uppercase font-bold">
+              SECURE MEDIA &amp; SYSTEM ENVIRONMENT
+            </p>
+
+            <button
+              onClick={handleStartSequence}
+              className="mt-10 px-8 py-4 font-mono text-xs tracking-[0.3em] font-bold text-white border border-[#00F0FF]/40 bg-gradient-to-r from-[#1C64F2]/20 to-[#00F0FF]/20 hover:from-[#1C64F2]/40 hover:to-[#00F0FF]/40 rounded cursor-pointer transition-all duration-300 relative group overflow-hidden shadow-[0_0_20px_rgba(0,240,255,0.15)] hover:shadow-[0_0_30px_rgba(0,240,255,0.35)]"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                INITIALIZE SECURE SYSTEM
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#00F0FF]/20 to-[#1C64F2]/20 -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
+            </button>
+
+            <p className="font-sans text-[10px] text-[#A0AEC0] tracking-widest mt-6 uppercase leading-relaxed max-w-xs">
+              Tap or click above to boot technical core diagnostics and activate high-fidelity audio telemetry sounds.
+            </p>
+          </motion.div>
+        )}
+
         {/* Phase 1: Approaching Vectors */}
         {stage === "approaching" && (
           <div className="absolute inset-0 flex items-center justify-between px-10">
@@ -572,6 +657,13 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
 
               {/* Bottom Quick Bypass Buttons & Encryption indicator */}
               <div className="border-t border-emerald-500/15 pt-4 mt-4 flex flex-col gap-3 select-none">
+                {/* Redirect countdown info banner */}
+                {redirectCountdown !== null && (
+                  <div className="text-[10px] text-emerald-400/80 font-bold tracking-widest text-center sm:text-left animate-pulse pb-1">
+                    &gt;&gt; REDIRECTING TO DESKTOP IN {redirectCountdown}s... [TYPE OR CLICK TO PAUSE]
+                  </div>
+                )}
+
                 {/* Micro Action Panel (only visible when typing sequence complete) */}
                 {terminalSequenceComplete && (
                   <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
