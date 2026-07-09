@@ -25,6 +25,7 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
   const [commandHistory, setCommandHistory] = useState<{ text: string; isCommandResult?: boolean }[]>([]);
   const [isMuted, setIsMuted] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const [isExiting, setIsExiting] = useState(false);
 
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,8 +76,50 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
     }
   };
 
+  // Snappy zoom-out exit sequence with pitch descending sound FX
+  const triggerExit = (redirectPath?: string) => {
+    setIsExiting(true);
+    playBeep(1200, 0.1, "sawtooth", 0.03);
+    setTimeout(() => playBeep(800, 0.08, "sine", 0.03), 50);
+    setTimeout(() => playBeep(400, 0.12, "triangle", 0.02), 100);
+    setTimeout(() => {
+      if (redirectPath) {
+        sessionStorage.setItem("launch_redirect_path", redirectPath);
+      }
+      onComplete();
+    }, 300);
+  };
+
   useEffect(() => {
-    // Start sequence and audio automatic loaders immediately on mount
+    // Robust browser AudioContext unlocker
+    const unlockAudio = () => {
+      if (!audioCtxRef.current) {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtxRef.current = new AudioContextClass();
+        }
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx && ctx.state === "suspended") {
+        ctx.resume().then(() => {
+          // Play a friendly welcoming digital tone to let them know audio is active
+          playBeep(880, 0.12, "sine", 0.03);
+          setTimeout(() => playBeep(1320, 0.15, "sine", 0.03), 80);
+        });
+      }
+      // Remove listeners after initial interaction
+      window.removeEventListener("click", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+      window.removeEventListener("touchstart", unlockAudio);
+      window.removeEventListener("mousedown", unlockAudio);
+    };
+
+    window.addEventListener("click", unlockAudio);
+    window.addEventListener("keydown", unlockAudio);
+    window.addEventListener("touchstart", unlockAudio);
+    window.addEventListener("mousedown", unlockAudio);
+
+    // Start sequence and automatic loaders immediately on mount
     playBeep(220, 0.15, "sawtooth", 0.03);
     const tStart1 = setTimeout(() => playBeep(440, 0.2, "triangle", 0.04), 100);
     const tStart2 = setTimeout(() => playBeep(880, 0.4, "sine", 0.05), 200);
@@ -96,8 +139,11 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
     timersRef.current.push(tStart1, tStart2, t1, t2, t3);
 
     return () => {
-      // Clean up all timers when component unmounts
       timersRef.current.forEach(clearTimeout);
+      window.removeEventListener("click", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+      window.removeEventListener("touchstart", unlockAudio);
+      window.removeEventListener("mousedown", unlockAudio);
     };
   }, []);
 
@@ -191,7 +237,7 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
   useEffect(() => {
     if (!terminalSequenceComplete || redirectCountdown === null) return;
     if (redirectCountdown <= 0) {
-      onComplete();
+      triggerExit();
       return;
     }
 
@@ -200,7 +246,7 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [terminalSequenceComplete, redirectCountdown, onComplete]);
+  }, [terminalSequenceComplete, redirectCountdown]);
 
   // If user starts interacting, pause the countdown so they aren't forced out
   useEffect(() => {
@@ -218,13 +264,11 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
   const handleShortcutTrigger = (cmd: string) => {
     playBeep(600, 0.08, "sine", 0.04);
     if (cmd === "REGISTER") {
-      sessionStorage.setItem("launch_redirect_path", "/contact");
-      onComplete();
+      triggerExit("/contact");
     } else if (cmd === "SERVICES") {
-      sessionStorage.setItem("launch_redirect_path", "/services");
-      onComplete();
+      triggerExit("/services");
     } else if (cmd === "BYPASS") {
-      onComplete();
+      triggerExit();
     }
   };
 
@@ -248,26 +292,24 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
       setInputValue("");
       playBeep(950, 0.15, "sine", 0.05);
       setTimeout(() => {
-        sessionStorage.setItem("launch_redirect_path", "/contact");
-        onComplete();
-      }, 700);
+        triggerExit("/contact");
+      }, 200);
     } else if (cmdUpper === "SERVICES") {
       newHistory.push({ text: "> LAUNCHING SERVICES SYSTEM LOGS...", isCommandResult: true });
       setCommandHistory(newHistory);
       setInputValue("");
       playBeep(950, 0.15, "sine", 0.05);
       setTimeout(() => {
-        sessionStorage.setItem("launch_redirect_path", "/services");
-        onComplete();
-      }, 700);
+        triggerExit("/services");
+      }, 200);
     } else if (cmdUpper === "BYPASS" || cmdUpper === "ENTER" || cmdUpper === "EXIT" || cmdUpper === "HOME") {
       newHistory.push({ text: "> BYPASSING SECURITY LAYER... WELCOME TO DONMAY MAIN NET.", isCommandResult: true });
       setCommandHistory(newHistory);
       setInputValue("");
       playBeep(1200, 0.2, "sine", 0.04);
       setTimeout(() => {
-        onComplete();
-      }, 700);
+        triggerExit();
+      }, 200);
     } else if (cmdUpper === "CLEAR") {
       setCommandHistory([]);
       setInputValue("");
@@ -292,7 +334,16 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#040714] digital-grid select-none overflow-hidden">
+    <motion.div
+      initial={{ opacity: 1, scale: 1 }}
+      animate={{ 
+        opacity: isExiting ? 0 : 1, 
+        scale: isExiting ? 0.85 : 1,
+        filter: isExiting ? "blur(12px)" : "blur(0px)" 
+      }}
+      transition={{ duration: 0.3, ease: [0.36, 0.07, 0.19, 0.97] }}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#040714] digital-grid select-none overflow-hidden"
+    >
       {/* Top indicator bar */}
       <div className="absolute top-6 left-8 right-8 flex items-center justify-between font-mono text-[10px] tracking-widest text-[#A0AEC0]">
         <div className="flex items-center gap-2">
@@ -306,7 +357,7 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
 
       {/* Skip Button */}
       <button
-        onClick={onComplete}
+        onClick={() => triggerExit()}
         className="absolute bottom-10 px-4 py-2 font-display text-xs tracking-widest text-[#A0AEC0] border border-[#1C64F2]/30 hover:border-[#00F0FF] hover:text-[#FFFFFF] hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] rounded bg-[#080B1C]/50 transition-all cursor-pointer z-50"
         id="btn-skip-intro"
       >
@@ -654,6 +705,6 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
           </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
