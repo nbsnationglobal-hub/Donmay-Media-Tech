@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import DonmayLogo from "./DonmayLogo";
 
@@ -13,7 +13,59 @@ interface LaunchAnimationProps {
 }
 
 export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
-  const [stage, setStage] = useState<"approaching" | "rippling" | "logo_reveal" | "complete">("approaching");
+  const [stage, setStage] = useState<"approaching" | "rippling" | "logo_reveal" | "terminal" | "complete">("approaching");
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [loaderFinished, setLoaderFinished] = useState(false);
+  const [currentLineIdx, setCurrentLineIdx] = useState(0);
+  const [currentCharIdx, setCurrentCharIdx] = useState(0);
+  const [printedLines, setPrintedLines] = useState<string[]>([]);
+  const [activeLineText, setActiveLineText] = useState("");
+  const [terminalSequenceComplete, setTerminalSequenceComplete] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [commandHistory, setCommandHistory] = useState<{ text: string; isCommandResult?: boolean }[]>([]);
+  const [isMuted, setIsMuted] = useState(false);
+
+  const terminalEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const fullTextLines = [
+    "Initiating Onboarding Sequence... [OK]",
+    "Establishing Secure Connection to Donmay Media & Tech Gateway... [CONNECTED]",
+    "Authentication Token Validated.",
+    "DONMAY_MEDIA_OS_LOADER [0.0.1]",
+    "",
+    "Welcome, USER_0182.",
+    "Your journey into High-Scale Media Engineering begins here.",
+    "To continue, type 'REGISTER' or explore our 'SERVICES'."
+  ];
+
+  // Retro computer sound synthesizer
+  const playBeep = (freq = 800, duration = 0.04, type: OscillatorType = "sine", volume = 0.05) => {
+    if (isMuted) return;
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gainNode.gain.setValueAtTime(volume, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+      
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch (err) {
+      // Audio autoplay restrictions caught gracefully
+    }
+  };
 
   useEffect(() => {
     // 1. Approaches take 2.2 seconds
@@ -26,18 +78,176 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
       setStage("logo_reveal");
     }, 3400);
 
-    // 3. Logo reveal takes 2.6 seconds
-    const completeTimer = setTimeout(() => {
-      setStage("complete");
-      onComplete();
-    }, 6000);
+    // 3. Logo reveal finishes, switch to terminal instead of instant homepage loading
+    const terminalTimer = setTimeout(() => {
+      setStage("terminal");
+    }, 5600);
 
     return () => {
       clearTimeout(rippleTimer);
       clearTimeout(logoTimer);
-      clearTimeout(completeTimer);
+      clearTimeout(terminalTimer);
     };
   }, [onComplete]);
+
+  // Handle Load Progress counting up
+  useEffect(() => {
+    if (stage !== "terminal" || loaderFinished) return;
+
+    const interval = setInterval(() => {
+      setLoadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          // Play central double chime alert
+          playBeep(880, 0.08, "sine", 0.04);
+          setTimeout(() => {
+            playBeep(1320, 0.12, "sine", 0.04);
+          }, 100);
+          setTimeout(() => {
+            setLoaderFinished(true);
+          }, 400);
+          return 100;
+        }
+        const next = prev + 1;
+        // Pitch climbing sound effect
+        if (next % 3 === 0) {
+          playBeep(300 + next * 5.5, 0.015, "triangle", 0.02);
+        }
+        return next;
+      });
+    }, 12);
+
+    return () => clearInterval(interval);
+  }, [stage, loaderFinished]);
+
+  // Handle Typewriter sequentials
+  useEffect(() => {
+    if (!loaderFinished || stage !== "terminal" || terminalSequenceComplete) return;
+
+    const targetLine = fullTextLines[currentLineIdx];
+    
+    // Empty separator lines
+    if (targetLine === "") {
+      const timer = setTimeout(() => {
+        setPrintedLines((prev) => [...prev, ""]);
+        setCurrentLineIdx((prev) => prev + 1);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+
+    const timer = setTimeout(() => {
+      if (currentCharIdx < targetLine.length) {
+        setActiveLineText((prev) => prev + targetLine[currentCharIdx]);
+        setCurrentCharIdx((prev) => prev + 1);
+        // Realistic micro clicking sound
+        playBeep(900 + Math.random() * 250, 0.01, "sine", 0.02);
+      } else {
+        // Complete current line, push to collection
+        setPrintedLines((prev) => [...prev, targetLine]);
+        setActiveLineText("");
+        setCurrentCharIdx(0);
+        
+        if (currentLineIdx + 1 < fullTextLines.length) {
+          setCurrentLineIdx((prev) => prev + 1);
+        } else {
+          setTerminalSequenceComplete(true);
+          // End chime
+          playBeep(1000, 0.1, "sine", 0.03);
+        }
+      }
+    }, targetLine.length > 50 ? 8 : 12);
+
+    return () => clearTimeout(timer);
+  }, [loaderFinished, stage, currentLineIdx, currentCharIdx, terminalSequenceComplete]);
+
+  // Scroll to bottom whenever history updates
+  useEffect(() => {
+    if (terminalEndRef.current) {
+      terminalEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [printedLines, activeLineText, commandHistory, loaderFinished, stage]);
+
+  const handleTerminalClick = () => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  const handleShortcutTrigger = (cmd: string) => {
+    playBeep(600, 0.08, "sine", 0.04);
+    if (cmd === "REGISTER") {
+      sessionStorage.setItem("launch_redirect_path", "/contact");
+      onComplete();
+    } else if (cmd === "SERVICES") {
+      sessionStorage.setItem("launch_redirect_path", "/services");
+      onComplete();
+    } else if (cmd === "BYPASS") {
+      onComplete();
+    }
+  };
+
+  const handleCommandSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+
+    const trimmedCmd = inputValue.trim();
+    const cmdUpper = trimmedCmd.toUpperCase();
+
+    const newHistory = [
+      ...commandHistory,
+      { text: `> ${trimmedCmd}`, isCommandResult: false }
+    ];
+
+    playBeep(700, 0.05, "sine", 0.03);
+
+    if (cmdUpper === "REGISTER") {
+      newHistory.push({ text: "> ACCESSING CREDENTIAL SECURITY REGISTRATION...", isCommandResult: true });
+      setCommandHistory(newHistory);
+      setInputValue("");
+      playBeep(950, 0.15, "sine", 0.05);
+      setTimeout(() => {
+        sessionStorage.setItem("launch_redirect_path", "/contact");
+        onComplete();
+      }, 700);
+    } else if (cmdUpper === "SERVICES") {
+      newHistory.push({ text: "> LAUNCHING SERVICES SYSTEM LOGS...", isCommandResult: true });
+      setCommandHistory(newHistory);
+      setInputValue("");
+      playBeep(950, 0.15, "sine", 0.05);
+      setTimeout(() => {
+        sessionStorage.setItem("launch_redirect_path", "/services");
+        onComplete();
+      }, 700);
+    } else if (cmdUpper === "BYPASS" || cmdUpper === "ENTER" || cmdUpper === "EXIT" || cmdUpper === "HOME") {
+      newHistory.push({ text: "> BYPASSING SECURITY LAYER... WELCOME TO DONMAY MAIN NET.", isCommandResult: true });
+      setCommandHistory(newHistory);
+      setInputValue("");
+      playBeep(1200, 0.2, "sine", 0.04);
+      setTimeout(() => {
+        onComplete();
+      }, 700);
+    } else if (cmdUpper === "CLEAR") {
+      setCommandHistory([]);
+      setInputValue("");
+    } else if (cmdUpper === "HELP") {
+      newHistory.push(
+        { text: "> VALID ACCESS DIRECTIVES:", isCommandResult: true },
+        { text: "  - REGISTER : Launch secure client enrollment form", isCommandResult: true },
+        { text: "  - SERVICES : Explore advanced services grid modules", isCommandResult: true },
+        { text: "  - BYPASS   : Bypass terminal gate and load home network", isCommandResult: true },
+        { text: "  - CLEAR    : Clear console output lines", isCommandResult: true }
+      );
+      setCommandHistory(newHistory);
+      setInputValue("");
+    } else {
+      newHistory.push({ 
+        text: `> Command not recognized: '${trimmedCmd}'. Type 'HELP' to show available protocols.`, 
+        isCommandResult: true 
+      });
+      setCommandHistory(newHistory);
+      setInputValue("");
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#040714] digital-grid select-none overflow-hidden">
@@ -55,7 +265,7 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
       {/* Skip Button */}
       <button
         onClick={onComplete}
-        className="absolute bottom-10 px-4 py-2 font-display text-xs tracking-widest text-[#A0AEC0] border border-[#1C64F2]/30 hover:border-[#00F0FF] hover:text-[#FFFFFF] hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] rounded bg-[#080B1C]/50 transition-all cursor-pointer"
+        className="absolute bottom-10 px-4 py-2 font-display text-xs tracking-widest text-[#A0AEC0] border border-[#1C64F2]/30 hover:border-[#00F0FF] hover:text-[#FFFFFF] hover:shadow-[0_0_15px_rgba(0,240,255,0.2)] rounded bg-[#080B1C]/50 transition-all cursor-pointer z-50"
         id="btn-skip-intro"
       >
         SKIP INIT_SEQUENCE
@@ -65,7 +275,7 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#1C64F2]/10 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Main Animation Arena */}
-      <div className="relative w-full max-w-4xl h-[400px] flex items-center justify-center">
+      <div className="relative w-full max-w-4xl min-h-[400px] flex items-center justify-center">
         {/* Phase 1: Approaching Vectors */}
         {stage === "approaching" && (
           <div className="absolute inset-0 flex items-center justify-between px-10">
@@ -223,6 +433,176 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
               </div>
             </motion.div>
           </div>
+        )}
+
+        {/* Phase 4: Interactive Onboarding Terminal Gate */}
+        {stage === "terminal" && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="w-full max-w-3xl px-6"
+          >
+            {/* TERMINAL WINDOW OUTER CONTAINER */}
+            <div
+              onClick={handleTerminalClick}
+              className="relative w-full rounded-lg border border-emerald-500/30 bg-[#020202] shadow-[0_0_50px_rgba(16,185,129,0.12)] p-4 md:p-6 font-mono text-xs md:text-sm text-emerald-400 cursor-text min-h-[420px] flex flex-col justify-between"
+            >
+              {/* Window Header */}
+              <div className="flex justify-between items-center border-b border-emerald-500/15 pb-3 mb-4 select-none">
+                <div className="flex gap-2 items-center">
+                  <span className="w-3 h-3 rounded-full bg-[#ef4444]/70" />
+                  <span className="w-3 h-3 rounded-full bg-[#eab308]/70" />
+                  <span className="w-3 h-3 rounded-full bg-[#22c55e]/70" />
+                  <span className="ml-2 font-bold text-[10px] text-emerald-500/80 tracking-widest hidden sm:inline">
+                    OS v1.0
+                  </span>
+                </div>
+                
+                <div className="text-emerald-400 font-extrabold text-[10px] md:text-xs tracking-wider">
+                  [DONMAY OS v1.0 ONBOARDING TERMINAL]
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {/* Mute toggle button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsMuted(!isMuted);
+                    }}
+                    className="p-1 hover:bg-emerald-500/10 rounded transition-all text-emerald-400/70 hover:text-emerald-300 cursor-pointer"
+                    title={isMuted ? "Unmute sounds" : "Mute sounds"}
+                  >
+                    {isMuted ? (
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                      </svg>
+                    ) : (
+                      <svg className="w-3.5 h-3.5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M12 18.75V5.25L7.75 9.5H4.5v5h3.25L12 18.75z" />
+                      </svg>
+                    )}
+                  </button>
+                  <span className="text-[9px] text-emerald-500/40 font-semibold tracking-wider">
+                    SEC_CORE_0
+                  </span>
+                </div>
+              </div>
+
+              {/* Terminal Screen Body */}
+              <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2 max-h-[290px] scrollbar-thin">
+                {/* 1. Loader Phase */}
+                {!loaderFinished ? (
+                  <div className="flex flex-col gap-2 select-none py-4">
+                    <div className="text-emerald-500/75">&gt; INITIALIZING SYSTEM DIAGNOSTICS...</div>
+                    <div className="text-emerald-500/75">&gt; ESCROW GATEWAY: ONLINE</div>
+                    <div className="text-emerald-500/75">&gt; SECURITY ENCRYPTION MODEL: AES-256</div>
+                    <div className="text-emerald-400 font-extrabold animate-pulse">&gt; DEPLOYING PROTOCOL INSTANCE ON NODE_0182...</div>
+                    
+                    <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-2">
+                      <span className="text-emerald-400 font-bold">BOOT SEQUENCE:</span>
+                      <div className="flex-1 max-w-md h-3.5 bg-black/80 border border-emerald-500/30 rounded overflow-hidden flex items-center px-0.5">
+                        <div 
+                          className="h-2.5 bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-75"
+                          style={{ width: `${loadProgress}%` }}
+                        />
+                      </div>
+                      <span className="text-emerald-400 font-extrabold tracking-widest">{loadProgress}%</span>
+                    </div>
+                  </div>
+                ) : (
+                  /* 2. Main Typewriter Feed */
+                  <div className="flex flex-col gap-1.5">
+                    {printedLines.map((lineText, idx) => (
+                      <div key={idx} className={`leading-relaxed whitespace-pre-wrap ${lineText ? "before:content-['>_']" : ""}`}>
+                        {lineText}
+                      </div>
+                    ))}
+                    
+                    {/* Active typing line */}
+                    {!terminalSequenceComplete && (
+                      <div className={`leading-relaxed whitespace-pre-wrap ${activeLineText ? "before:content-['>_']" : ""}`}>
+                        {activeLineText}
+                        <span className="w-2 h-4 bg-emerald-400 inline-block animate-pulse" />
+                      </div>
+                    )}
+
+                    {/* Custom Command History logs */}
+                    {commandHistory.map((cmdLine, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`leading-relaxed whitespace-pre-wrap ${
+                          cmdLine.isCommandResult ? "text-emerald-300/80 pl-4" : "text-emerald-400 font-bold"
+                        }`}
+                      >
+                        {cmdLine.text}
+                      </div>
+                    ))}
+
+                    {/* Active Prompt Form input */}
+                    {terminalSequenceComplete && (
+                      <form onSubmit={handleCommandSubmit} className="flex items-center gap-1.5 mt-2">
+                        <span className="font-extrabold text-emerald-400 shrink-0">{`>`}</span>
+                        <div className="relative flex-1 flex items-center">
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            className="absolute inset-0 bg-transparent text-transparent caret-transparent focus:outline-none border-none resize-none overflow-hidden h-full w-full font-mono text-xs md:text-sm"
+                            autoFocus
+                            maxLength={50}
+                            aria-label="Onboarding Terminal Command"
+                            placeholder="Type REGISTER, SERVICES, HELP or bypass..."
+                          />
+                          {/* Visible simulated command text */}
+                          <span className="text-emerald-400 font-extrabold z-10 whitespace-pre">
+                            {inputValue}
+                          </span>
+                          {/* Simulated authentic blinking block cursor */}
+                          <span className="w-2 h-4 bg-emerald-400 ml-1 shrink-0 animate-pulse z-10" />
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                )}
+                <div ref={terminalEndRef} />
+              </div>
+
+              {/* Bottom Quick Bypass Buttons & Encryption indicator */}
+              <div className="border-t border-emerald-500/15 pt-4 mt-4 flex flex-col gap-3 select-none">
+                {/* Micro Action Panel (only visible when typing sequence complete) */}
+                {terminalSequenceComplete && (
+                  <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                    <button
+                      onClick={() => handleShortcutTrigger("REGISTER")}
+                      className="px-3 py-1.5 border border-emerald-500/30 hover:border-emerald-400 hover:bg-emerald-500/10 text-emerald-400 hover:text-white rounded text-[10px] font-mono tracking-widest uppercase font-black transition-all cursor-pointer"
+                    >
+                      [1] EXECUTE REGISTER
+                    </button>
+                    <button
+                      onClick={() => handleShortcutTrigger("SERVICES")}
+                      className="px-3 py-1.5 border border-emerald-500/30 hover:border-emerald-400 hover:bg-emerald-500/10 text-emerald-400 hover:text-white rounded text-[10px] font-mono tracking-widest uppercase font-black transition-all cursor-pointer"
+                    >
+                      [2] LAUNCH SERVICES
+                    </button>
+                    <button
+                      onClick={() => handleShortcutTrigger("BYPASS")}
+                      className="px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 hover:border-emerald-300 text-white rounded text-[10px] font-mono tracking-widest uppercase font-black transition-all cursor-pointer"
+                    >
+                      [3] BYPASS HOME INTERFACE
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-[8px] text-emerald-500/40 font-bold uppercase tracking-widest">
+                  <span>KEYBOARD INPUT: CONNECTED</span>
+                  <span>SECURE LAYER: CH-802</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         )}
       </div>
     </div>

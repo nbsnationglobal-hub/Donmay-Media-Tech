@@ -30,6 +30,15 @@ function AppLayout() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  // Handle post-launch terminal redirects
+  useEffect(() => {
+    const redirectPath = sessionStorage.getItem("launch_redirect_path");
+    if (redirectPath) {
+      sessionStorage.removeItem("launch_redirect_path");
+      navigate(redirectPath);
+    }
+  }, [navigate]);
+
   // Translate routing paths to the appropriate navbar section state underlines
   const getActiveSection = (pathname: string) => {
     if (pathname === "/") return "hero-section";
