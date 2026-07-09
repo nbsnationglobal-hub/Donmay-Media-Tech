@@ -130,10 +130,10 @@ export default function Footer({ onSelectApp, onNavClick, onOpenAcousticLab }: F
             </h4>
             <div className="flex flex-col gap-3 mt-2">
               <button
-                onClick={() => onSelectApp?.("vora")}
+                onClick={() => onSelectApp?.("kamsir")}
                 className="font-mono text-[10.5px] uppercase tracking-wider text-[#A0AEC0] hover:text-[#00F0FF] transition-colors text-left"
               >
-                Vora Studio
+                KAMSIR STUDIO
               </button>
               <button
                 onClick={() => onSelectApp?.("quantsync")}

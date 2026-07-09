@@ -11,7 +11,7 @@ export interface AppNode {
   longDescription: string;
   architectureStack: string[];
   capabilities: string[];
-  simulationType: "vora" | "quantsync" | "media_hero" | "budget" | "aura" | "culina";
+  simulationType: "kamsir" | "quantsync" | "media_hero" | "budget" | "aura" | "culina";
   microTags: string[];
   targetUrl: string;
 }

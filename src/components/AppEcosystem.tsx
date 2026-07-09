@@ -26,7 +26,7 @@ export default function AppEcosystem({ onSelectApp }: AppEcosystemProps) {
   // Assign customized premium icons to our proprietary apps
   const getAppIcon = (type: string) => {
     switch (type) {
-      case "vora":
+      case "kamsir":
         return <Video className="w-5 h-5 text-purple-400" />;
       case "quantsync":
         return <TrendingUp className="w-5 h-5 text-[#00F0FF]" />;
@@ -45,7 +45,7 @@ export default function AppEcosystem({ onSelectApp }: AppEcosystemProps) {
 
   const getBadgeColor = (type: string) => {
     switch (type) {
-      case "vora":
+      case "kamsir":
         return "border-purple-500/30 text-purple-400 bg-purple-500/5";
       case "quantsync":
         return "border-[#00F0FF]/30 text-[#00F0FF] bg-[#00F0FF]/5";

@@ -7,8 +7,8 @@ import { AppNode, ServiceItem } from "./types";
 
 export const APPLICATIONS_DATA: AppNode[] = [
   {
-    id: "vora",
-    title: "Vora Studio // AI Cinema & Video Generator",
+    id: "kamsir",
+    title: "KAMSIR STUDIO // AI Cinema & Video Generator",
     subtitle: "AI Video System",
     shortDescription: "Instantly turn music tracks or scripts into high-quality music videos, films, and animations. Upload your photo to keep your exact face consistent across every scene.",
     longDescription: "Instantly turn music tracks or scripts into high-quality music videos, films, and animations. Upload any high-resolution photo to keep your exact facial features fully consistent across every scene.",
@@ -19,7 +19,7 @@ export const APPLICATIONS_DATA: AppNode[] = [
       "Create high-quality cinematic results and custom animations on any script",
       "Full 4K resolutions suitable for social media or professional use"
     ],
-    simulationType: "vora",
+    simulationType: "kamsir",
     microTags: ["Core: Gemini Vision", "Output: 4K Cinematic"],
     targetUrl: "https://aistudio.google.com/apps/c65074cc-b709-4349-9b32-6f3fea46e067?showPreview=true&showAssistant=true"
   },

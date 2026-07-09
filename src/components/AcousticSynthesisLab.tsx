@@ -50,97 +50,453 @@ export default function AcousticSynthesisLab({ onBackToHome, onEnrollContract }:
   const [briefGoal, setBriefGoal] = useState<"Social Media Ad" | "Private Celebration" | "Podcast Backdrop">("Social Media Ad");
   const [briefCopied, setBriefCopied] = useState<boolean>(false);
 
-  const handleGenerateLyrics = () => {
+  // States for the individual track specification decks (interactive toggles)
+  const [track1Vibe, setTrack1Vibe] = useState<"Energetic" | "Cinematic" | "Minimal">("Energetic");
+  const [track1Format, setTrack1Format] = useState<"Social Ad" | "Keynote" | "Presentation">("Social Ad");
+
+  const [track2Tempo, setTrack2Tempo] = useState<"Majestic" | "Upbeat" | "Melancholic">("Majestic");
+  const [track2Instrument, setTrack2Instrument] = useState<"Grand Piano" | "Cyber Synth" | "Orchestral Strings">("Grand Piano");
+
+  const [track3Tempo, setTrack3Tempo] = useState<"Majestic" | "Upbeat" | "Melancholic">("Upbeat");
+  const [track3Instrument, setTrack3Instrument] = useState<"Grand Piano" | "Cyber Synth" | "Orchestral Strings">("Cyber Synth");
+
+  const handleGenerateLyrics = async () => {
     if (!lyricTheme.trim()) return;
     setIsGeneratingLyrics(true);
     setLyricCopied(false);
 
-    // Simulate epic matrix compilation delay
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/generate-lyrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          theme: lyricTheme.trim(),
+          vibes: briefGoal,
+          tempo: briefTempo,
+          instrument: briefInstrument,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to compile lyrics via server-side neural matrix.");
+      }
+
+      const data = await response.json();
+      if (data.lyrics) {
+        setGeneratedLyrics(data.lyrics);
+        return;
+      }
+      throw new Error("Empty lyrics payload received.");
+    } catch (err) {
+      console.warn("Server-side synthesis failed, falling back to local compilation node...", err);
       const keyword = lyricTheme.trim();
       const themeLower = keyword.toLowerCase();
       let compiled = "";
 
-      if (themeLower.includes("wedding") || themeLower.includes("anniversary") || themeLower.includes("marriage") || themeLower.includes("love") || themeLower.includes("romance") || themeLower.includes("marry")) {
-        // Romantic / Wedding / Anniversary Theme
+      const isAnniversaryTheme = 
+        themeLower.includes("anniversary") || 
+        themeLower.includes("wedding") || 
+        themeLower.includes("marriage") || 
+        themeLower.includes("years since") || 
+        themeLower.includes("years together") || 
+        themeLower.includes("husband") || 
+        themeLower.includes("wife") || 
+        themeLower.includes("donald") || 
+        themeLower.includes("ella") || 
+        themeLower.includes("purity");
+
+      const isCinematicTheme = 
+        themeLower.includes("movie") || 
+        themeLower.includes("film") || 
+        themeLower.includes("soundtrack") || 
+        themeLower.includes("sacrifice") || 
+        themeLower.includes("background song") || 
+        themeLower.includes("background music") || 
+        themeLower.includes("cinematic") || 
+        themeLower.includes("drama") || 
+        themeLower.includes("theme song") || 
+        themeLower.includes("story");
+
+      const isBirthdayTheme = 
+        themeLower.includes("birthday") || 
+        themeLower.includes("born") || 
+        themeLower.includes("bday") || 
+        themeLower.includes("milestone") || 
+        (themeLower.includes("celebrat") && !isAnniversaryTheme);
+
+      const isGeneralLoveTheme = 
+        themeLower.includes("love") || 
+        themeLower.includes("romance") || 
+        themeLower.includes("heart") || 
+        themeLower.includes("sweet");
+
+      // Advanced Parameter Extraction Helper
+      const extractSongData = (text: string) => {
+        let husband = "Donald";
+        let wife = "Ella";
+        let child = "Purity";
+        let yearCountWord = "Three"; // default capitalized word at start of sentence
+        let yearCountNum = "three"; // default lowercase word inside sentence
+
+        // Words to filter out when parsing potential names
+        const noiseWords = new Set([
+          "the", "a", "an", "and", "or", "in", "on", "at", "to", "for", "with", "by", "of", "i", "we", "my", "our", "your", "their", "his", "her", "its", "me", "you", "them", "us", "him", "she", "he", "they",
+          "happy", "anniversary", "birthday", "wedding", "marriage", "celebrating", "celebration", "together", "years", "year", "beautiful", "gorgeous", "innocent", "curly", "hair", "smile", "love", "forever", "always", "heart", "melody", "harmony", "song", "lyrics", "bridge", "verse", "chorus", "about", "write", "make", "create", "generate", "want", "need", "please", "could", "would", "should", "like", "love", "this", "that", "these", "those", "is", "are", "was", "were", "been", "be", "have", "has", "had", "do", "does", "did", "can", "will", "shall", "may", "might", "must", "since", "became", "bride", "groom", "side", "walk", "walking", "looking", "see", "whole", "world", "blessing", "morning", "brings", "every", "single", "laughter", "shared", "story", "told", "first", "step", "upon", "open", "road", "steady", "ancient", "trees", "remains", "time", "passing", "under", "sky", "built", "foundation", "grow", "deeper", "devotion", "know", "melody", "we'll", "ever", "go", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"
+        ]);
+
+        // Map for digits/words for years
+        const numWordMap: { [key: string]: string } = {
+          "1": "one", "2": "two", "3": "three", "4": "four", "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine", "10": "ten",
+          "one": "one", "two": "two", "three": "three", "four": "four", "five": "five", "six": "six", "seven": "seven", "eight": "eight", "nine": "nine", "ten": "ten"
+        };
+
+        const digitMatch = text.match(/\b(\d+)\b/);
+        if (digitMatch) {
+          const num = digitMatch[1];
+          const mapped = numWordMap[num] || num;
+          yearCountNum = mapped;
+          yearCountWord = mapped.charAt(0).toUpperCase() + mapped.slice(1);
+        } else {
+          const keys = Object.keys(numWordMap).filter(k => isNaN(Number(k)));
+          const wordRegex = new RegExp(`\\b(${keys.join("|")})\\b`, "i");
+          const wordMatch = text.match(wordRegex);
+          if (wordMatch) {
+            const w = wordMatch[1].toLowerCase();
+            yearCountNum = w;
+            yearCountWord = w.charAt(0).toUpperCase() + w.slice(1);
+          }
+        }
+
+        // Scan capitalized words for name candidates
+        const capitalizedWords = text.match(/[A-Z][a-zA-Z]+/g) || [];
+        const validNames = capitalizedWords.filter(n => !noiseWords.has(n.toLowerCase()));
+
+        // Also look at lowercase names inside "X and Y" pattern if no capitalized words match
+        if (validNames.length < 2) {
+          const generalWords = text.match(/\b[a-zA-Z]+\b/g) || [];
+          generalWords.forEach(word => {
+            const lower = word.toLowerCase();
+            if (!noiseWords.has(lower) && word.length > 2) {
+              const camel = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+              if (!validNames.includes(camel)) {
+                validNames.push(camel);
+              }
+            }
+          });
+        }
+
+        // Try to locate child name from relationship cues
+        let extractedChild = "";
+        const childPatterns = [
+          /(?:daughter|child|kid|baby|girl|son)\s*(?:named|is)?\s*\b([A-Z][a-zA-Z]+|[a-z]{3,})\b/i,
+          /\b([A-Z][a-zA-Z]+|[a-z]{3,})\b\s*(?:our|their)?\s*(?:daughter|child|kid|baby|girl|son)/i,
+        ];
+        for (const pattern of childPatterns) {
+          const m = text.match(pattern);
+          if (m && !noiseWords.has(m[1].toLowerCase())) {
+            extractedChild = m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
+            break;
+          }
+        }
+
+        if (text.toLowerCase().includes("purity")) {
+          extractedChild = "Purity";
+        }
+
+        // Try to locate couple names
+        let extractedHusband = "";
+        let extractedWife = "";
+        const coupleRegex = /\b([A-Z][a-zA-Z]+|[a-z]{3,})\s*(?:and|&|with)\s*([A-Z][a-zA-Z]+|[a-z]{3,})\b/i;
+        const coupleMatch = text.match(coupleRegex);
+
+        if (coupleMatch) {
+          const n1 = coupleMatch[1].charAt(0).toUpperCase() + coupleMatch[1].slice(1).toLowerCase();
+          const n2 = coupleMatch[2].charAt(0).toUpperCase() + coupleMatch[2].slice(1).toLowerCase();
+          if (!noiseWords.has(n1.toLowerCase()) && !noiseWords.has(n2.toLowerCase())) {
+            extractedHusband = n1;
+            extractedWife = n2;
+          }
+        }
+
+        // Assign unmatched candidates
+        if (!extractedHusband || !extractedWife) {
+          const list = validNames.filter(n => n !== extractedChild);
+          if (list.length >= 2) {
+            if (!extractedHusband) extractedHusband = list[0];
+            if (!extractedWife) extractedWife = list[1];
+          } else if (list.length === 1) {
+            if (!extractedHusband) extractedHusband = list[0];
+          }
+        }
+
+        if (!extractedChild) {
+          const list = validNames.filter(n => n !== extractedHusband && n !== extractedWife);
+          if (list.length > 0) {
+            extractedChild = list[0];
+          }
+        }
+
+        if (extractedHusband) husband = extractedHusband;
+        if (extractedWife) wife = extractedWife;
+        if (extractedChild) child = extractedChild;
+
+        // Dedup and defaults
+        if (husband === wife) {
+          wife = husband === "Donald" ? "Ella" : "Donald";
+        }
+        if (child === husband || child === wife) {
+          child = "Purity";
+        }
+
+        return { husband, wife, child, yearCountWord, yearCountNum };
+      };
+
+      if (isAnniversaryTheme) {
+        const { husband, wife, child, yearCountWord } = extractSongData(keyword);
+
         compiled = `--- BESPOKE ROMANTIC SONGBOOK FOR: "${keyword.toUpperCase()}" ---
 
 [VERSE_01]
-From the first step we took upon this open road
-Every laughter we shared, every heavy load we bore
-I watched the horizon paint your face in gold
-A beautiful story of devotion waiting to unfold
-"${keyword}" is the melody of our forever.
+From the first step we took upon this open road,
+Every laughter we shared, every story we've told.
+${yearCountWord} beautiful years since you became my bride,
+${husband} and ${wife}, walking side by side.
 
 [CHORUS]
-Through the seasons of life, hand in hand we will stand
-Building our dreams across the shifting sand
-With every sunrise, my devotion grows deep
-Promises we made, promises we will always keep
-No distance can alter the warmth of your touch
-In this timeless journey, I love you so much!
+Through the seasons of life, hand in hand we will stand,
+Building our dreams across the shifting sand.
+With every sunrise, our devotion grows deep,
+Promises we made, promises we will always keep.
 
 [VERSE_02]
-Years may pass by like leaves on the breeze
-But our love remains steady as ancient trees
-Walking together, finding beauty in the small things
-Grateful for every single blessing that each morning brings
-Two hearts beating softly, united and true.`;
-      } else if (themeLower.includes("birthday") || themeLower.includes("born") || themeLower.includes("bday") || themeLower.includes("celebrat")) {
-        // Birthday / Joyful Celebration Theme
+Years may pass by like leaves on the breeze,
+But our love remains steady as ancient trees.
+And looking at ${child}, our beautiful girl,
+We see our whole world in her innocent curl.
+Grateful for every single blessing each morning brings.
+
+[BRIDGE]
+This isn't just time passing us by,
+It's a beautiful promise under the sky.
+We built this foundation, together we grow,
+Deeper than any devotion we know.
+
+[FINAL_CHORUS]
+Through the seasons of life, hand in hand we will stand,
+Building our dreams across the shifting sand.
+${yearCountWord} years of love, forever to go,
+The most beautiful melody we'll ever know.`;
+
+      } else if (isCinematicTheme) {
+        const cleanForTopic = (text: string) => {
+          return text
+            .replace(/I need a background song for my movies?,? it is about/gi, "")
+            .replace(/I need a background song for my movies?/gi, "")
+            .replace(/background song for my movies?,?/gi, "")
+            .replace(/write a song about/gi, "")
+            .replace(/generate a song about/gi, "")
+            .replace(/lyrics for a song about/gi, "")
+            .replace(/it is about/gi, "")
+            .replace(/it's about/gi, "")
+            .replace(/a song about/gi, "")
+            .replace(/generate lyrics for/gi, "")
+            .replace(/background song for/gi, "")
+            .trim();
+        };
+        const rawTopic = cleanForTopic(keyword);
+        const coreTopic = rawTopic ? (rawTopic.charAt(0).toUpperCase() + rawTopic.slice(1)) : keyword;
+
+        compiled = `--- CINEMATIC STORYTELLER SOUNDTRACK: "${keyword.toUpperCase()}" ---
+
+[VERSE_01]
+When the shadows lengthen on the silver screen,
+Every minor chord captures the space in between.
+The storyline whispers of "${coreTopic}",
+A delicate light where the brave hearts live.
+Through the endless silence and the mounting dark,
+We carry the flame, we cherish the spark.
+
+[CHORUS]
+Through the seasons of life and the shifting of sand,
+Against all the odds, we will take a stand.
+Because "${rawTopic || keyword}" is the script we must trace,
+To find our redemption in a timeless embrace.
+With every sacrifice, our devotion grows deep,
+Promises we made, we are driven to keep.
+
+[VERSE_02]
+As the camera rolls and the curtains start to rise,
+We see our whole world under cinematic skies.
+Every chapter we write is a battle we won,
+Walking hand in hand toward a rising sun.
+Though the road is demanding and the price is high,
+We look at the horizon and we dare to fly.
+
+[BRIDGE]
+This isn't just time passing us by,
+It's a beautiful promise under the sky.
+We built this foundation, together we grow,
+Deeper than any devotion we know.
+
+[FINAL_CHORUS]
+Through the seasons of life and the shifting of sand,
+Against all the odds, we will take a stand.
+Yes, "${rawTopic || keyword}" is a beautiful art,
+The most powerful melody inside of our heart.
+To hold the flame, we pay the heaviest price,
+A glorious song of love and of sacrifice.`;
+
+      } else if (isBirthdayTheme) {
+        const { husband, wife, child, yearCountWord, yearCountNum } = extractSongData(keyword);
+        
+        let bdayName = husband;
+        const kwLower = keyword.toLowerCase();
+        if (kwLower.includes("purity")) {
+          bdayName = "Purity";
+        } else if (kwLower.includes(husband.toLowerCase())) {
+          bdayName = husband;
+        } else if (kwLower.includes(wife.toLowerCase())) {
+          bdayName = wife;
+        } else if (kwLower.includes(child.toLowerCase())) {
+          bdayName = child;
+        }
+
+        const ageMatch = keyword.match(/(\d+)(?:st|nd|rd|th)?\s*(?:birthday|bday|years? old)/i);
+        let ageText = "special milestone";
+        if (ageMatch) {
+          ageText = `${ageMatch[1]}th milestone`;
+        } else {
+          ageText = `${yearCountNum} milestone`;
+        }
+
         compiled = `--- CELEBRATORIAL MILESTONE HARMONY FOR: "${keyword.toUpperCase()}" ---
 
 [VERSE_01]
-The calendar turns, and the candles start to glow
-A beautiful reflection of how much you've helped us grow
-Gathered in real warmth, with spirits running high
-Toasting to another wonderful journey round the sun in the sky
-"${keyword}" stands for the joy that we share.
+The calendar turns, and the candles start to glow,
+A beautiful reflection of how much you've helped us grow.
+Gathered in real warmth, with spirits running high,
+Toasting to another wonderful journey round the sun in the sky.
+Celebrating ${bdayName} on this ${ageText}, a moment so grand.
 
 [CHORUS]
-Raise up a glass to the memories we've made
+Raise up a glass to the memories we've made,
 To the light in your eyes that will never fade!
-May this milestone bring laughter and peace with every stride
+May this milestone bring laughter and peace with every stride,
 With good friends, deep gratitude, and family by your side!
-Here's to the future, the stories still untold
-Watch the magic of this spectacular day unfold!
+Here's to the future, the stories still untold,
+Watch the magic of this spectacular day unfold for ${bdayName}!
 
 [VERSE_02]
-Let the music play loud, let the dancing begin
-Cherishing the beautiful life that you've built within
-Every dream is a spark, every smile is a key
-Celebrating a soul that is wonderfully happy and free
-May your path be bright and your heart find its song!`;
+Let the music play loud, let the dancing begin,
+Cherishing the beautiful life that you've built within.
+Every dream is a spark, every smile is a key,
+Celebrating a soul that is wonderfully happy and free,
+A moment we share, full of wonder and glee.
+
+[BRIDGE]
+The laughter we echo is more than a sound,
+It’s the genuine beauty of love we have found.
+Through the days of tomorrows and years of the past,
+We toast to these moments, forever to last.
+
+[FINAL_CHORUS]
+Raise up a glass to the memories we've made,
+To the light in your eyes that will never fade!
+${bdayName}, may your path be bright and your heart find its song,
+A celebration for ${bdayName} where we all belong,
+Forever in power, together and strong.`;
+
+      } else if (isGeneralLoveTheme) {
+        const cleanForTopic = (text: string) => {
+          return text
+            .replace(/write a song about/gi, "")
+            .replace(/generate a song about/gi, "")
+            .replace(/it is about/gi, "")
+            .replace(/it's about/gi, "")
+            .trim();
+        };
+        const rawTopic = cleanForTopic(keyword);
+        const coreTopic = rawTopic ? (rawTopic.charAt(0).toUpperCase() + rawTopic.slice(1)) : keyword;
+
+        compiled = `--- DYNAMIC BALLAD OF DEVOTION: "${keyword.toUpperCase()}" ---
+
+[VERSE_01]
+From the quietest whisper in the middle of the night,
+To the brilliant dawn bathing everything in light.
+Every step we take has a harmony of its own,
+In a world of wonder where our spirits have grown.
+And we carry our theme of "${coreTopic}" with grace,
+Finding real serenity in this sacred space.
+
+[CHORUS]
+Through the seasons of life, hand in hand we will stand,
+Building our dreams across the shifting sand.
+With every sunrise, our devotion grows deep,
+Promises we made, promises we will always keep.
+
+[VERSE_02]
+Years may pass by like leaves on the breeze,
+But our love remains steady as ancient trees.
+We look to the future, we look to the past,
+Knowing that the bonds we create always last.
+Grateful for every single blessing each morning brings.
+
+[BRIDGE]
+This isn't just time passing us by,
+It's a beautiful promise under the sky.
+We built this foundation, together we grow,
+Deeper than any devotion we know.
+
+[FINAL_CHORUS]
+Through the seasons of life, hand in hand we will stand,
+Building our dreams across the shifting sand.
+This journey of love, forever to go,
+The most beautiful melody we'll ever know.`;
+
       } else {
         // Corporate, Commercial, Business or Default Theme
         compiled = `--- COMMERCIAL SPECIFICATION BLUEPRINT FOR: "${keyword.toUpperCase()}" ---
 
 [VERSE_01]
-Through the market dynamics, our vision starts to scale
-We deliver core momentum where others often fail
-With absolute integrity and specifications aligned
-Pioneering absolute excellence through the depth of design
+Through the market dynamics, our vision starts to scale,
+We deliver core momentum where others often fail.
+With absolute integrity and specifications aligned,
+Pioneering absolute excellence through the depth of design,
 "${keyword}" is the benchmark of the system we build.
 
 [CHORUS]
-We rise above the noise of the classical trade
+We rise above the noise of the classical trade,
 We are the industry standard that our team has made!
-The quarterly roadmap is clean, our delivery is clear
+The quarterly roadmap is clean, our delivery is clear,
 Forging a reliable commercial-grade frontier!
-Enterprise efficiency runs direct in the team
+Enterprise efficiency runs direct in the team,
 Exceeding target metrics, fulfilling the dream!
 
 [VERSE_02]
-Every operations node is now online and optimized
-Our strategic integration has been fully realized
-Woven directly around target compliance and trust
-We drive high return, doing what we must
-To elevate the brand and keep our standard premium!`;
+Every operations node is now online and optimized,
+Our strategic integration has been fully realized.
+Woven directly around target compliance and trust,
+We drive high return, doing what we must,
+To elevate the brand and keep our standard premium.
+
+[BRIDGE]
+Innovation is more than a statement we write,
+It's a continuous motion we power with might.
+A reliable process compiled and refined,
+Through the advanced architecture we designed.
+
+[FINAL_CHORUS]
+We rise above the noise of the classical trade,
+We are the industry standard that our team has made!
+With absolute clarity and strength at the core,
+"${keyword}" is paving the future and more,
+An enduring connection that opens the door.`;
       }
 
       setGeneratedLyrics(compiled);
+    } finally {
       setIsGeneratingLyrics(false);
-    }, 850);
+    }
   };
 
   const handleCopyLyrics = () => {
@@ -513,233 +869,458 @@ TIMESTAMP:          ${new Date().toISOString()}
                 </div>
 
                 {/* Grid of Preview Audio Cards */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-5">
                   
                   {/* TRACK CARD 01 */}
                   <div 
-                    className={`p-4 rounded-lg border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 bg-black/40 ${
+                    className={`p-4 rounded-lg border transition-all bg-black/40 ${
                       playingTrack === "track1" 
-                        ? "border-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.1)] bg-[#00F0FF]/5" 
+                        ? "border-[#00F0FF] shadow-[0_0_20px_rgba(0,240,255,0.15)] bg-[#00F0FF]/5" 
                         : "border-[#1C64F2]/10 hover:border-[#1C64F2]/30"
                     }`}
                     id="track-card-01"
                   >
-                    <div className="flex-1 flex flex-col gap-1.5">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="font-mono text-[#00F0FF] text-[10px] font-black tracking-widest uppercase">
-                          [TRACK_01]
-                        </span>
-                        <div className="flex gap-1.5">
-                          <span className="font-mono text-[7px] text-[#A0AEC0] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
-                            COMMERCIAL BGM
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 w-full">
+                      {/* Left Column: Info & Audio Controls */}
+                      <div className="lg:col-span-7 flex flex-col gap-2">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-mono text-[#00F0FF] text-[10px] font-black tracking-widest uppercase">
+                            [TRACK_01]
                           </span>
-                          <span className="font-mono text-[7px] text-amber-400 uppercase tracking-wider px-1.5 py-0.5 bg-amber-500/5 rounded border border-amber-500/10">
-                            RIGHTS INCLUDED
-                          </span>
+                          <div className="flex gap-1.5 flex-wrap">
+                            <span className="font-mono text-[7px] text-[#A0AEC0] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
+                              COMMERCIAL BGM
+                            </span>
+                            <span className="font-mono text-[7px] text-amber-400 uppercase tracking-wider px-1.5 py-0.5 bg-amber-500/5 rounded border border-amber-500/10">
+                              RIGHTS INCLUDED
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <h4 className="font-display font-medium text-xs md:text-sm text-white uppercase tracking-wider">
-                        Corporate Sonic Identity
-                      </h4>
-                      <p className="font-sans text-[11px] text-neutral-400 uppercase tracking-wide leading-relaxed">
-                        A modern, inspiring synth-driven background progression calibrated for corporate branding videos, ads, and keynotes.
-                      </p>
-                      
-                      {/* Standard HTML audio player styled subtle */}
-                      <audio 
-                        ref={track1Ref}
-                        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-                        preload="none"
-                        onPlay={() => setPlayingTrack("track1")}
-                        onPause={() => { if (playingTrack === "track1") setPlayingTrack(null); }}
-                        onEnded={() => setPlayingTrack(null)}
-                        className="w-full mt-2 block h-8 accent-[#00F0FF]"
-                      />
-                      {playingTrack === "track1" && (
+                        <h4 className="font-display font-medium text-xs md:text-sm text-white uppercase tracking-wider">
+                          Corporate Sonic Identity
+                        </h4>
+                        <p className="font-sans text-[11px] text-neutral-400 uppercase tracking-wide leading-relaxed">
+                          A modern, inspiring synth-driven background progression calibrated for corporate branding videos, ads, and keynotes.
+                        </p>
+                        
+                        {/* Audio Controller elements & Waveform visualizer */}
+                        <div className="flex items-center gap-3 mt-1 w-full">
+                          <button
+                            onClick={() => toggleTrack("track1")}
+                            className={`px-4 py-2 font-mono text-[9px] font-black uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 ${
+                              playingTrack === "track1"
+                                ? "bg-[#00F0FF] text-[#040714] shadow-[0_0_12px_rgba(0,240,255,0.4)] border-[#00F0FF]"
+                                : "bg-[#080B1C]/80 border border-[#1C64F2]/35 text-[#00F0FF] hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]"
+                            }`}
+                          >
+                            {playingTrack === "track1" ? (
+                              <>
+                                <span>⏸ PAUSE</span>
+                                <div className="flex items-end gap-[1.5px] h-2.5 w-3 overflow-hidden">
+                                  <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-full" style={{ animationDuration: "0.6s" }} />
+                                  <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-2" style={{ animationDuration: "1s" }} />
+                                  <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-3" style={{ animationDuration: "0.8s" }} />
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <span>▶ EXECUTE PREVIEW</span>
+                              </>
+                            )}
+                          </button>
+                          
+                          {/* Standard HTML audio player hidden */}
+                          <audio 
+                            ref={track1Ref}
+                            src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+                            preload="none"
+                            onPlay={() => setPlayingTrack("track1")}
+                            onPause={() => { if (playingTrack === "track1") setPlayingTrack(null); }}
+                            onEnded={() => setPlayingTrack(null)}
+                            className="hidden"
+                          />
+                          <div className="font-mono text-[8.5px] text-[#00F0FF]/50 uppercase tracking-widest leading-none">
+                            {playingTrack === "track1" ? "STREAMING WAVEFORM_NODE" : "STREAM PROTOCOL STANDBY"}
+                          </div>
+                        </div>
+
+                        {/* Pulsing trace is drawn at all times showing idle/active */}
                         <WaveformVisualizer 
                           audioElement={track1Ref.current} 
                           isPlaying={playingTrack === "track1"} 
                         />
-                      )}
-                    </div>
+                      </div>
 
-                    <div className="flex flex-col items-end gap-2 text-right shrink-0">
-                      <button
-                        onClick={() => toggleTrack("track1")}
-                        className={`w-full md:w-auto px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                          playingTrack === "track1"
-                            ? "bg-[#00F0FF] text-[#040714] shadow-[0_0_12px_rgba(0,240,255,0.4)] border-[#00F0FF]"
-                            : "bg-[#080B1C]/80 border border-[#1C64F2]/35 text-[#00F0FF] hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]"
-                        }`}
-                      >
-                        {playingTrack === "track1" ? (
-                          <>
-                            <span>⏸ PAUSE PROTOCOL</span>
-                            {/* Equalizer animation */}
-                            <div className="flex items-end gap-[1.5px] h-2.5 w-3 overflow-hidden">
-                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-full" style={{ animationDuration: "0.6s" }} />
-                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-2" style={{ animationDuration: "1s" }} />
-                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-3" style={{ animationDuration: "0.8s" }} />
+                      {/* Right Column: MINI SYSTEM SPECIFICATION DECK */}
+                      <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-4 flex flex-col justify-between gap-3 text-left">
+                        <div className="flex flex-col gap-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="font-mono text-[8px] text-[#00F0FF] tracking-wider uppercase font-extrabold">
+                              // SYSTEM SPECIFICATION DECK
+                            </span>
+                            <span className="font-mono text-[7px] text-zinc-500 uppercase">CORE_MOD_01</span>
+                          </div>
+
+                          {/* Toggle 1: Vibe */}
+                          <div className="flex flex-col gap-1">
+                            <span className="font-mono text-[7.5px] text-zinc-400 uppercase tracking-wider">
+                              [VIBE COEFFICIENT]:
+                            </span>
+                            <div className="grid grid-cols-3 gap-1 grid-flow-row">
+                              {(["Energetic", "Cinematic", "Minimal"] as const).map((vibe) => (
+                                <button
+                                  key={vibe}
+                                  type="button"
+                                  onClick={() => setTrack1Vibe(vibe)}
+                                  className={`py-1 rounded font-mono text-[8px] uppercase tracking-wide border cursor-pointer transition-all ${
+                                    track1Vibe === vibe
+                                      ? "bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] font-black"
+                                      : "bg-black/30 border-white/5 text-neutral-400 hover:text-white"
+                                  }`}
+                                >
+                                  {vibe}
+                                </button>
+                              ))}
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            <span>▶ EXECUTE PREVIEW</span>
-                          </>
-                        )}
-                      </button>
+                          </div>
+
+                          {/* Toggle 2: Format */}
+                          <div className="flex flex-col gap-1">
+                            <span className="font-mono text-[7.5px] text-zinc-400 uppercase tracking-wider">
+                              [TARGET FORMAT]:
+                            </span>
+                            <div className="grid grid-cols-3 gap-1 grid-flow-row">
+                              {(["Social Ad", "Keynote", "Presentation"] as const).map((format) => (
+                                <button
+                                  key={format}
+                                  type="button"
+                                  onClick={() => setTrack1Format(format)}
+                                  className={`py-1 rounded font-mono text-[7px] xxs:text-[7.5px] uppercase tracking-wide border cursor-pointer transition-all truncate ${
+                                    track1Format === format
+                                      ? "bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] font-black"
+                                      : "bg-black/30 border-white/5 text-neutral-400 hover:text-white"
+                                  }`}
+                                  title={format}
+                                >
+                                  {format}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Specification text string block */}
+                        <div className="bg-black/50 border border-white/5 p-2 rounded flex flex-col gap-0.5">
+                          <span className="font-mono text-[7px] text-zinc-500 uppercase tracking-widest leading-none">
+                            SPECIFICATION METADATA STRING:
+                          </span>
+                          <span className="font-mono text-[8px] text-emerald-400 font-bold uppercase tracking-wider leading-relaxed">
+                            [SPEC: VIBE_{track1Vibe.toUpperCase()} // FORMAT_{track1Format.toUpperCase().replace(" ", "_")}]
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                   {/* TRACK CARD 02 */}
                   <div 
-                    className={`p-4 rounded-lg border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 bg-black/40 ${
+                    className={`p-4 rounded-lg border transition-all bg-black/40 ${
                       playingTrack === "track2" 
-                        ? "border-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.1)] bg-[#00F0FF]/5" 
+                        ? "border-[#00F0FF] shadow-[0_0_20px_rgba(0,240,255,0.15)] bg-[#00F0FF]/5" 
                         : "border-[#1C64F2]/10 hover:border-[#1C64F2]/30"
                     }`}
                     id="track-card-02"
                   >
-                    <div className="flex-1 flex flex-col gap-1.5">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="font-mono text-[#00F0FF] text-[10px] font-black tracking-widest uppercase">
-                          [TRACK_02]
-                        </span>
-                        <div className="flex gap-1.5">
-                          <span className="font-mono text-[7px] text-[#A0AEC0] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
-                            MILESTONE SCORE
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 w-full">
+                      {/* Left Column: Info & Audio Controls */}
+                      <div className="lg:col-span-7 flex flex-col gap-2">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-mono text-[#00F0FF] text-[10px] font-black tracking-widest uppercase">
+                            [TRACK_02]
                           </span>
-                          <span className="font-mono text-[7px] text-purple-400 uppercase tracking-wider px-1.5 py-0.5 bg-purple-500/5 rounded border border-purple-500/10">
-                            ACOUSTIC PIANO
-                          </span>
+                          <div className="flex gap-1.5 flex-wrap">
+                            <span className="font-mono text-[7px] text-[#A0AEC0] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
+                              MILESTONE SCORE
+                            </span>
+                            <span className="font-mono text-[7px] text-purple-400 uppercase tracking-wider px-1.5 py-0.5 bg-purple-500/5 rounded border border-purple-500/10">
+                              ACOUSTIC PIANO
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <h4 className="font-display font-medium text-xs md:text-sm text-white uppercase tracking-wider">
-                        Bespoke Anniversary &amp; Wedding Score
-                      </h4>
-                      <p className="font-sans text-[11px] text-neutral-400 uppercase tracking-wide leading-relaxed">
-                        A beautiful piano arrangement blending romantic orchestration for grand entrance ceremony processionals and milestone reels.
-                      </p>
-                      
-                      {/* Standard HTML audio player styled subtle */}
-                      <audio 
-                        ref={track2Ref}
-                        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-                        preload="none"
-                        onPlay={() => setPlayingTrack("track2")}
-                        onPause={() => { if (playingTrack === "track2") setPlayingTrack(null); }}
-                        onEnded={() => setPlayingTrack(null)}
-                        className="w-full mt-2 block h-8 accent-[#00F0FF]"
-                      />
-                      {playingTrack === "track2" && (
+                        <h4 className="font-display font-medium text-xs md:text-sm text-white uppercase tracking-wider">
+                          Bespoke Anniversary &amp; Wedding Score
+                        </h4>
+                        <p className="font-sans text-[11px] text-neutral-400 uppercase tracking-wide leading-relaxed">
+                          A beautiful piano arrangement blending romantic orchestration for grand entrance ceremony processionals and milestone reels.
+                        </p>
+                        
+                        {/* Audio Controller elements & Waveform visualizer */}
+                        <div className="flex items-center gap-3 mt-1 w-full">
+                          <button
+                            onClick={() => toggleTrack("track2")}
+                            className={`px-4 py-2 font-mono text-[9px] font-black uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 ${
+                              playingTrack === "track2"
+                                ? "bg-[#00F0FF] text-[#040714] shadow-[0_0_12px_rgba(0,240,255,0.4)] border-[#00F0FF]"
+                                : "bg-[#080B1C]/80 border border-[#1C64F2]/35 text-[#00F0FF] hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]"
+                            }`}
+                          >
+                            {playingTrack === "track2" ? (
+                              <>
+                                <span>⏸ PAUSE</span>
+                                <div className="flex items-end gap-[1.5px] h-2.5 w-3 overflow-hidden">
+                                  <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-full" style={{ animationDuration: "0.6s" }} />
+                                  <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-2" style={{ animationDuration: "1s" }} />
+                                  <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-3" style={{ animationDuration: "0.8s" }} />
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <span>▶ EXECUTE PREVIEW</span>
+                              </>
+                            )}
+                          </button>
+                          
+                          {/* Standard HTML audio player hidden */}
+                          <audio 
+                            ref={track2Ref}
+                            src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+                            preload="none"
+                            onPlay={() => setPlayingTrack("track2")}
+                            onPause={() => { if (playingTrack === "track2") setPlayingTrack(null); }}
+                            onEnded={() => setPlayingTrack(null)}
+                            className="hidden"
+                          />
+                          <div className="font-mono text-[8.5px] text-[#00F0FF]/50 uppercase tracking-widest leading-none">
+                            {playingTrack === "track2" ? "STREAMING WAVEFORM_NODE" : "STREAM PROTOCOL STANDBY"}
+                          </div>
+                        </div>
+
+                        {/* Waveform Visualizer */}
                         <WaveformVisualizer 
                           audioElement={track2Ref.current} 
                           isPlaying={playingTrack === "track2"} 
                         />
-                      )}
-                    </div>
+                      </div>
 
-                    <div className="flex flex-col items-end gap-2 text-right shrink-0">
-                      <button
-                        onClick={() => toggleTrack("track2")}
-                        className={`w-full md:w-auto px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                          playingTrack === "track2"
-                            ? "bg-[#00F0FF] text-[#040714] shadow-[0_0_12px_rgba(0,240,255,0.4)] border-[#00F0FF]"
-                            : "bg-[#080B1C]/80 border border-[#1C64F2]/35 text-[#00F0FF] hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]"
-                        }`}
-                      >
-                        {playingTrack === "track2" ? (
-                          <>
-                            <span>⏸ PAUSE PROTOCOL</span>
-                            {/* Equalizer animation */}
-                            <div className="flex items-end gap-[1.5px] h-2.5 w-3 overflow-hidden">
-                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-full" style={{ animationDuration: "0.6s" }} />
-                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-2" style={{ animationDuration: "1s" }} />
-                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-3" style={{ animationDuration: "0.8s" }} />
+                      {/* Right Column: MINI SYSTEM SPECIFICATION DECK */}
+                      <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-4 flex flex-col justify-between gap-3 text-left">
+                        <div className="flex flex-col gap-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="font-mono text-[8px] text-[#00F0FF] tracking-wider uppercase font-extrabold">
+                              // SYSTEM SPECIFICATION DECK
+                            </span>
+                            <span className="font-mono text-[7px] text-zinc-500 uppercase">CORE_MOD_02</span>
+                          </div>
+
+                          {/* Toggle 1: Tempo */}
+                          <div className="flex flex-col gap-1">
+                            <span className="font-mono text-[7.5px] text-zinc-400 uppercase tracking-wider">
+                              [TEMPO SCALAR]:
+                            </span>
+                            <div className="grid grid-cols-3 gap-1 grid-flow-row">
+                              {(["Majestic", "Upbeat", "Melancholic"] as const).map((tempo) => (
+                                <button
+                                  key={tempo}
+                                  type="button"
+                                  onClick={() => setTrack2Tempo(tempo)}
+                                  className={`py-1 rounded font-mono text-[8px] uppercase tracking-wide border cursor-pointer transition-all ${
+                                    track2Tempo === tempo
+                                      ? "bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] font-black"
+                                      : "bg-black/30 border-white/5 text-neutral-400 hover:text-white"
+                                  }`}
+                                >
+                                  {tempo}
+                                </button>
+                              ))}
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            <span>▶ EXECUTE PREVIEW</span>
-                          </>
-                        )}
-                      </button>
+                          </div>
+
+                          {/* Toggle 2: Instrument */}
+                          <div className="flex flex-col gap-1">
+                            <span className="font-mono text-[7.5px] text-zinc-400 uppercase tracking-wider">
+                              [PRIMARY INSTRUMENT]:
+                            </span>
+                            <div className="grid grid-cols-3 gap-1 grid-flow-row">
+                              {(["Grand Piano", "Cyber Synth", "Orchestral Strings"] as const).map((inst) => (
+                                <button
+                                  key={inst}
+                                  type="button"
+                                  onClick={() => setTrack2Instrument(inst)}
+                                  className={`py-1 px-0.5 rounded font-mono text-[6.8px] sm:text-[7.5px] uppercase tracking-tight border cursor-pointer transition-all truncate ${
+                                    track2Instrument === inst
+                                      ? "bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] font-black"
+                                      : "bg-black/30 border-white/5 text-[#A0AEC0] hover:text-white"
+                                  }`}
+                                  title={inst}
+                                >
+                                  {inst}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Specification text string block */}
+                        <div className="bg-black/50 border border-white/5 p-2 rounded flex flex-col gap-0.5">
+                          <span className="font-mono text-[7px] text-zinc-500 uppercase tracking-widest leading-none">
+                            SPECIFICATION METADATA STRING:
+                          </span>
+                          <span className="font-mono text-[8px] text-emerald-400 font-bold uppercase tracking-wider leading-relaxed">
+                            [SPEC: TEMPO_{track2Tempo.toUpperCase()} // INST_{track2Instrument.toUpperCase().replace(" ", "_")}]
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
                   {/* TRACK CARD 03 */}
                   <div 
-                    className={`p-4 rounded-lg border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 bg-black/40 ${
+                    className={`p-4 rounded-lg border transition-all bg-black/40 ${
                       playingTrack === "track3" 
-                        ? "border-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.1)] bg-[#00F0FF]/5" 
+                        ? "border-[#00F0FF] shadow-[0_0_20px_rgba(0,240,255,0.15)] bg-[#00F0FF]/5" 
                         : "border-[#1C64F2]/10 hover:border-[#1C64F2]/30"
                     }`}
                     id="track-card-03"
                   >
-                    <div className="flex-1 flex flex-col gap-1.5">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="font-mono text-[#00F0FF] text-[10px] font-black tracking-widest uppercase">
-                          [TRACK_03]
-                        </span>
-                        <div className="flex gap-1.5">
-                          <span className="font-mono text-[7px] text-[#A0AEC0] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
-                            CELEBRATION THEME
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 w-full">
+                      {/* Left Column: Info & Audio Controls */}
+                      <div className="lg:col-span-7 flex flex-col gap-2">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-mono text-[#00F0FF] text-[10px] font-black tracking-widest uppercase">
+                            [TRACK_03]
                           </span>
-                          <span className="font-mono text-[7px] text-[#00F0FF] uppercase tracking-wider px-1.5 py-0.5 bg-[#00F0FF]/5 rounded border border-[#00F0FF]/15">
-                            UPBEAT EDM
-                          </span>
+                          <div className="flex gap-1.5 flex-wrap">
+                            <span className="font-mono text-[7px] text-[#A0AEC0] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 rounded border border-white/5">
+                              CELEBRATION THEME
+                            </span>
+                            <span className="font-mono text-[7px] text-[#00F0FF] uppercase tracking-wider px-1.5 py-0.5 bg-[#00F0FF]/5 rounded border border-[#00F0FF]/15">
+                              UPBEAT EDM
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <h4 className="font-display font-medium text-xs md:text-sm text-white uppercase tracking-wider">
-                        Custom Celebration / Birthday Theme
-                      </h4>
-                      <p className="font-sans text-[11px] text-neutral-400 uppercase tracking-wide leading-relaxed">
-                        An energetic, rhythmic electronic-dance layout built to deliver optimal high tempos for private events and dynamic celebrations.
-                      </p>
-                      
-                      {/* Standard HTML audio player styled subtle */}
-                      <audio 
-                        ref={track3Ref}
-                        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-                        preload="none"
-                        onPlay={() => setPlayingTrack("track3")}
-                        onPause={() => { if (playingTrack === "track3") setPlayingTrack(null); }}
-                        onEnded={() => setPlayingTrack(null)}
-                        className="w-full mt-2 block h-8 accent-[#00F0FF]"
-                      />
-                      {playingTrack === "track3" && (
+                        <h4 className="font-display font-medium text-xs md:text-sm text-white uppercase tracking-wider">
+                          Custom Celebration / Birthday Theme
+                        </h4>
+                        <p className="font-sans text-[11px] text-neutral-400 uppercase tracking-wide leading-relaxed">
+                          An energetic, rhythmic electronic-dance layout built to deliver optimal high tempos for private events and dynamic celebrations.
+                        </p>
+                        
+                        {/* Audio Controller elements & Waveform visualizer */}
+                        <div className="flex items-center gap-3 mt-1 w-full">
+                          <button
+                            onClick={() => toggleTrack("track3")}
+                            className={`px-4 py-2 font-mono text-[9px] font-black uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 ${
+                              playingTrack === "track3"
+                                ? "bg-[#00F0FF] text-[#040714] shadow-[0_0_12px_rgba(0,240,255,0.4)] border-[#00F0FF]"
+                                : "bg-[#080B1C]/80 border border-[#1C64F2]/35 text-[#00F0FF] hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]"
+                            }`}
+                          >
+                            {playingTrack === "track3" ? (
+                              <>
+                                <span>⏸ PAUSE</span>
+                                <div className="flex items-end gap-[1.5px] h-2.5 w-3 overflow-hidden">
+                                  <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-full" style={{ animationDuration: "0.6s" }} />
+                                  <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-2" style={{ animationDuration: "1s" }} />
+                                  <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-3" style={{ animationDuration: "0.8s" }} />
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <span>▶ EXECUTE PREVIEW</span>
+                              </>
+                            )}
+                          </button>
+                          
+                          {/* Standard HTML audio player hidden */}
+                          <audio 
+                            ref={track3Ref}
+                            src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+                            preload="none"
+                            onPlay={() => setPlayingTrack("track3")}
+                            onPause={() => { if (playingTrack === "track3") setPlayingTrack(null); }}
+                            onEnded={() => setPlayingTrack(null)}
+                            className="hidden"
+                          />
+                          <div className="font-mono text-[8.5px] text-[#00F0FF]/50 uppercase tracking-widest leading-none">
+                            {playingTrack === "track3" ? "STREAMING WAVEFORM_NODE" : "STREAM PROTOCOL STANDBY"}
+                          </div>
+                        </div>
+
+                        {/* Waveform Visualizer */}
                         <WaveformVisualizer 
                           audioElement={track3Ref.current} 
                           isPlaying={playingTrack === "track3"} 
                         />
-                      )}
-                    </div>
+                      </div>
 
-                    <div className="flex flex-col items-end gap-2 text-right shrink-0">
-                      <button
-                        onClick={() => toggleTrack("track3")}
-                        className={`w-full md:w-auto px-4 py-2.5 font-mono text-[9px] font-black uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                          playingTrack === "track3"
-                            ? "bg-[#00F0FF] text-[#040714] shadow-[0_0_12px_rgba(0,240,255,0.4)] border-[#00F0FF]"
-                            : "bg-[#080B1C]/80 border border-[#1C64F2]/35 text-[#00F0FF] hover:bg-[#00F0FF]/15 hover:border-[#00F0FF]"
-                        }`}
-                      >
-                        {playingTrack === "track3" ? (
-                          <>
-                            <span>⏸ PAUSE PROTOCOL</span>
-                            {/* Equalizer animation */}
-                            <div className="flex items-end gap-[1.5px] h-2.5 w-3 overflow-hidden">
-                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-full" style={{ animationDuration: "0.6s" }} />
-                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-2" style={{ animationDuration: "1s" }} />
-                              <span className="w-[1.5px] bg-[#040714] rounded-sm animate-pulse h-3" style={{ animationDuration: "0.8s" }} />
+                      {/* Right Column: MINI SYSTEM SPECIFICATION DECK */}
+                      <div className="lg:col-span-5 border-t lg:border-t-0 lg:border-l border-white/10 pt-4 lg:pt-0 lg:pl-4 flex flex-col justify-between gap-3 text-left">
+                        <div className="flex flex-col gap-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="font-mono text-[8px] text-[#00F0FF] tracking-wider uppercase font-extrabold">
+                              // SYSTEM SPECIFICATION DECK
+                            </span>
+                            <span className="font-mono text-[7px] text-zinc-500 uppercase">CORE_MOD_03</span>
+                          </div>
+
+                          {/* Toggle 1: Tempo */}
+                          <div className="flex flex-col gap-1">
+                            <span className="font-mono text-[7.5px] text-zinc-400 uppercase tracking-wider">
+                              [TEMPO SCALAR]:
+                            </span>
+                            <div className="grid grid-cols-3 gap-1 grid-flow-row">
+                              {(["Majestic", "Upbeat", "Melancholic"] as const).map((tempo) => (
+                                <button
+                                  key={tempo}
+                                  type="button"
+                                  onClick={() => setTrack3Tempo(tempo)}
+                                  className={`py-1 rounded font-mono text-[8px] uppercase tracking-wide border cursor-pointer transition-all ${
+                                    track3Tempo === tempo
+                                      ? "bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] font-black"
+                                      : "bg-black/30 border-white/5 text-neutral-400 hover:text-white"
+                                  }`}
+                                >
+                                  {tempo}
+                                </button>
+                              ))}
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            <span>▶ EXECUTE PREVIEW</span>
-                          </>
-                        )}
-                      </button>
+                          </div>
+
+                          {/* Toggle 2: Instrument */}
+                          <div className="flex flex-col gap-1">
+                            <span className="font-mono text-[7.5px] text-zinc-400 uppercase tracking-wider">
+                              [PRIMARY INSTRUMENT]:
+                            </span>
+                            <div className="grid grid-cols-3 gap-1 grid-flow-row">
+                              {(["Grand Piano", "Cyber Synth", "Orchestral Strings"] as const).map((inst) => (
+                                <button
+                                  key={inst}
+                                  type="button"
+                                  onClick={() => setTrack3Instrument(inst)}
+                                  className={`py-1 px-0.5 rounded font-mono text-[6.8px] sm:text-[7.5px] uppercase tracking-tight border cursor-pointer transition-all truncate ${
+                                    track3Instrument === inst
+                                      ? "bg-[#00F0FF]/15 border-[#00F0FF] text-[#00F0FF] font-black"
+                                      : "bg-black/30 border-white/5 text-[#A0AEC0] hover:text-white"
+                                  }`}
+                                  title={inst}
+                                >
+                                  {inst}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Specification text string block */}
+                        <div className="bg-black/50 border border-white/5 p-2 rounded flex flex-col gap-0.5">
+                          <span className="font-mono text-[7px] text-zinc-500 uppercase tracking-widest leading-none">
+                            SPECIFICATION METADATA STRING:
+                          </span>
+                          <span className="font-mono text-[8px] text-emerald-400 font-bold uppercase tracking-wider leading-relaxed">
+                            [SPEC: TEMPO_{track3Tempo.toUpperCase()} // INST_{track3Instrument.toUpperCase().replace(" ", "_")}]
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 

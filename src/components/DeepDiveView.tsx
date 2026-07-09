@@ -68,7 +68,7 @@ export default function DeepDiveView({ appNode, onBack }: DeepDiveViewProps) {
     { name: "The Green Canopy Farms", item: "Organic Herb bundles", distance: "4.3 km", status: "Active" }
   ];
 
-  // Vora timeline tracker playhead simulation
+  // Kamsir timeline tracker playhead simulation
   const [timelinePlayhead, setTimelinePlayhead] = useState(0);
   // QuantSync live pulsing chart simulated coordinate arrays
   const [tickerPrice, setTickerPrice] = useState(1.0825);
@@ -131,9 +131,9 @@ export default function DeepDiveView({ appNode, onBack }: DeepDiveViewProps) {
     }
   }, [appNode.id]);
 
-  // Vora Studio timeline loop
+  // Kamsir Studio timeline loop
   useEffect(() => {
-    if (appNode.simulationType !== "vora") return;
+    if (appNode.simulationType !== "kamsir") return;
     const interval = setInterval(() => {
       setTimelinePlayhead(prev => {
         if (prev >= 100) return 0;
@@ -206,7 +206,7 @@ export default function DeepDiveView({ appNode, onBack }: DeepDiveViewProps) {
         return "MetaTrader 5 (MT5) ID";
       case "budget":
         return "Bento Construction Project Name";
-      case "vora":
+      case "kamsir":
         return "Primary Cinema Studio Studio Handle";
       case "media_hero":
         return "Social YouTube or Instagram Handle";
@@ -302,15 +302,15 @@ export default function DeepDiveView({ appNode, onBack }: DeepDiveViewProps) {
                 <div className={`flex-1 min-h-[460px] rounded-b-lg border p-6 relative flex flex-col justify-between overflow-hidden ${isCulina ? "border-[#FF7A18]/30 bg-[#0F0F0F]" : "border-[#1C64F2]/30 bg-[#040714]"}`}>
                   <div className="absolute inset-0 digital-grid opacity-35 pointer-events-none" />
 
-                  {/* 1. VORA STUDIO SIMULATOR (Timeline Frame Animation) */}
-                  {appNode.simulationType === "vora" && (
-                    <div className="relative z-10 flex flex-col justify-between h-full gap-6" id="sim-vora">
+                  {/* 1. KAMSIR STUDIO SIMULATOR (Timeline Frame Animation) */}
+                  {appNode.simulationType === "kamsir" && (
+                    <div className="relative z-10 flex flex-col justify-between h-full gap-6" id="sim-kamsir">
                       <div className="flex justify-between items-center bg-[#080B1C]/90 p-4 border border-[#1C64F2]/25 rounded">
                         <div className="flex items-center gap-3">
                           <Film className="w-5 h-5 text-purple-400 animate-pulse" />
                           <div>
                             <p className="font-display text-xs text-white font-bold tracking-widest uppercase">
-                              VORA VIDEO CHOREOGRAPHY FEED
+                              KAMSIR VIDEO CHOREOGRAPHY FEED
                             </p>
                             <p className="font-mono text-[9px] text-[#A0AEC0] tracking-wide mt-0.5">
                               GEMINI VISION // FRAMING RENDERING CAPTURE MATRIX
