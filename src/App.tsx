@@ -155,7 +155,15 @@ function AppLayout() {
 }
 
 export default function App() {
-  const [isIntroComplete, setIsIntroComplete] = useState<boolean>(true);
+  const [isIntroComplete, setIsIntroComplete] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Capture the initial pathname if it is a subpage so we can restore it after launch completes
+    const initialPath = window.location.pathname;
+    if (initialPath && initialPath !== "/" && !sessionStorage.getItem("launch_redirect_path")) {
+      sessionStorage.setItem("launch_redirect_path", initialPath);
+    }
+  }, []);
 
   useEffect(() => {
     const handleReplay = () => {
