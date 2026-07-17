@@ -371,45 +371,45 @@ export default function LaunchAnimation({ onComplete }: LaunchAnimationProps) {
       <div className="relative w-full max-w-4xl min-h-[400px] flex items-center justify-center">
         {/* Phase 1: Approaching Vectors */}
         {stage === "approaching" && (
-          <div className="absolute inset-0 flex items-center justify-between px-10">
+          <div className="absolute inset-0 flex items-center justify-center gap-3 sm:gap-6 md:gap-10 px-4">
             {/* Sleek Abstract Media UI (Left glides to center) */}
             <motion.div
-              initial={{ x: "-100%", opacity: 0 }}
-              animate={{ x: "calc(50vw - 320px)", opacity: 1 }}
+              initial={{ x: "-55vw", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 2.1, ease: "easeOut" }}
-              className="w-80 h-48 rounded-lg border border-[#00F0FF]/40 bg-[#080B1C]/90 p-4 relative panel-glow flex flex-col justify-between"
+              className="w-[150px] sm:w-64 md:w-80 h-32 sm:h-40 md:h-48 rounded-lg border border-[#00F0FF]/40 bg-[#080B1C]/90 p-2 sm:p-3 md:p-4 relative panel-glow flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between border-b border-[#00F0FF]/20 pb-2">
-                <span className="font-mono text-[10px] text-[#00F0FF] tracking-widest">MEDIA_NODE_01 // ACTIVE</span>
-                <span className="text-[#00F0FF] text-xs">●</span>
+              <div className="flex items-center justify-between border-b border-[#00F0FF]/20 pb-1 sm:pb-2">
+                <span className="font-mono text-[7px] sm:text-[9px] md:text-[10px] text-[#00F0FF] tracking-wider md:tracking-widest truncate">MEDIA_NODE_01 // ACTIVE</span>
+                <span className="text-[#00F0FF] text-[8px] sm:text-xs">●</span>
               </div>
               
               {/* Animated waveform in the slider preview */}
-              <div className="flex items-end justify-center gap-1 h-14 my-2">
+              <div className="flex items-end justify-center gap-0.5 sm:gap-1 h-10 sm:h-12 md:h-14 my-1 sm:my-2">
                 {[12, 18, 8, 22, 35, 14, 28, 42, 30, 16, 24, 10, 32, 15, 20, 8].map((val, idx) => (
                   <motion.div
                     key={idx}
-                    animate={{ height: [val, val * 0.4, val * 1.2, val] }}
+                    animate={{ height: [val * 0.6, val * 0.24, val * 0.72, val * 0.6] }}
                     transition={{ repeat: Infinity, duration: 1.2 + idx * 0.05, ease: "easeInOut" }}
-                    className="w-1 bg-gradient-to-t from-[#1C64F2] to-[#00F0FF] rounded-t"
-                    style={{ height: val }}
+                    className={`w-0.5 sm:w-1 bg-gradient-to-t from-[#1C64F2] to-[#00F0FF] rounded-t ${idx >= 8 ? "hidden sm:block" : ""}`}
+                    style={{ height: val * 0.6 }}
                   />
                 ))}
               </div>
 
-              <div className="flex justify-between items-center font-mono text-[8px] text-[#A0AEC0]">
+              <div className="flex justify-between items-center font-mono text-[5px] sm:text-[7px] md:text-[8px] text-[#A0AEC0]">
                 <span>FPS: 60.00</span>
-                <span>CH: INTERACTIVE-HIFI</span>
-                <span>SAMP: 96.0 KHZ</span>
+                <span className="hidden sm:inline">CH: INTERACTIVE-HIFI</span>
+                <span>SAMP: 96K</span>
               </div>
             </motion.div>
 
             {/* Highly detailed Cybernetic Technical Arm (Right glides to center) */}
             <motion.div
-              initial={{ x: "100%", opacity: 0 }}
-              animate={{ x: "calc(-50vw + 320px)", opacity: 1 }}
+              initial={{ x: "55vw", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 2.1, ease: "easeOut" }}
-              className="w-80 h-48 flex items-center justify-end font-mono"
+              className="w-[150px] sm:w-64 md:w-80 h-32 sm:h-40 md:h-48 flex items-center justify-end font-mono"
             >
               <svg className="w-full h-full" viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Arm base mount on right */}
