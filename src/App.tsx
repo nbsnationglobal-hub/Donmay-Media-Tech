@@ -155,11 +155,15 @@ function AppLayout() {
 }
 
 export default function App() {
-  const [isIntroComplete, setIsIntroComplete] = useState<boolean>(() => {
-    // Session caching prevent repeating full-intro simulations on rapid browser refreshes
-    const stored = sessionStorage.getItem("donmay_intro_sequence_complete");
-    return stored === "true";
-  });
+  const [isIntroComplete, setIsIntroComplete] = useState<boolean>(true);
+
+  useEffect(() => {
+    const handleReplay = () => {
+      setIsIntroComplete(false);
+    };
+    window.addEventListener("replay-launch-animation", handleReplay);
+    return () => window.removeEventListener("replay-launch-animation", handleReplay);
+  }, []);
 
   const handleAnimationComplete = () => {
     sessionStorage.setItem("donmay_intro_sequence_complete", "true");

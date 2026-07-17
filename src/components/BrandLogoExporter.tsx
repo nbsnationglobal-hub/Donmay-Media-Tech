@@ -479,15 +479,15 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
             )}
 
             {/* TRIGGER TRIGGERS */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               
               {/* STILL CAPTURE BUTTON */}
               <button
                 disabled={compiling}
                 onClick={handleExportStill}
-                className="bg-black/40 border border-white/10 hover:border-[#00F0FF]/40 text-neutral-300 hover:text-[#00F0FF] py-3 px-4 rounded font-mono text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:pointer-events-none"
+                className="bg-black/40 border border-white/10 hover:border-[#00F0FF]/40 text-neutral-300 hover:text-[#00F0FF] py-3 px-3 rounded font-mono text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
               >
-                <ImageIcon className="w-4 h-4" />
+                <ImageIcon className="w-3.5 h-3.5" />
                 <span>EXILE HD STILL</span>
               </button>
 
@@ -495,9 +495,9 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
               <button
                 disabled={compiling}
                 onClick={() => handleCompileLoop("video")}
-                className="bg-[#1C64F2]/10 hover:bg-[#1C64F2]/30 border border-[#1C64F2]/40 text-[#ffffff] py-3 px-4 rounded font-mono text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:pointer-events-none hover:shadow-[0_0_15px_rgba(28,100,242,0.2)]"
+                className="bg-[#1C64F2]/10 hover:bg-[#1C64F2]/30 border border-[#1C64F2]/40 text-[#ffffff] py-3 px-3 rounded font-mono text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none hover:shadow-[0_0_15px_rgba(28,100,242,0.2)]"
               >
-                <Video className="w-4 h-4" />
+                <Video className="w-3.5 h-3.5" />
                 <span>GENERATE MP4 LOOP</span>
               </button>
 
@@ -505,10 +505,22 @@ export default function BrandLogoExporter({ onReturn }: BrandLogoExporterProps) 
               <button
                 disabled={compiling}
                 onClick={() => handleCompileLoop("gif")}
-                className="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-400 py-3 px-4 rounded font-mono text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:pointer-events-none"
+                className="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-400 py-3 px-3 rounded font-mono text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
               >
-                <Flame className="w-4 h-4" />
+                <Flame className="w-3.5 h-3.5" />
                 <span>COMPILE AS GIF</span>
+              </button>
+
+              {/* REPLAY INTRO SEQUENCE */}
+              <button
+                disabled={compiling}
+                onClick={() => {
+                  window.dispatchEvent(new Event("replay-launch-animation"));
+                }}
+                className="bg-[#00F0FF]/10 hover:bg-[#00F0FF]/25 border border-[#00F0FF]/40 text-[#00F0FF] py-3 px-3 rounded font-mono text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none hover:shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#00F0FF]" />
+                <span>PLAY BRAND INTRO</span>
               </button>
 
             </div>
