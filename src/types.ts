@@ -20,7 +20,7 @@ export interface ServiceItem {
   id: string;
   title: string;
   subtitle: string;
-  category: "development" | "audio" | "media" | "marketing";
+  category: "development" | "audio" | "media" | "marketing" | "design";
   description: string;
   deliverables: string[];
   priceRange: string;

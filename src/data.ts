@@ -123,7 +123,7 @@ export const SERVICES_DATA: ServiceItem[] = [
       "Dynamic ad copywriting & creative multi-channel design arrays",
       "Fully integrated tracking pixels (Meta, Google, TikTok) & growth dashboard logs"
     ],
-    priceRange: "From $500 USD",
+    priceRange: "From ₦80,000 (~$60 USD) / Month",
     deliveryTime: "5 - 10 Days"
   },
   {
@@ -138,7 +138,7 @@ export const SERVICES_DATA: ServiceItem[] = [
       "Direct audience response management & sentiment monitoring",
       "Monthly comprehensive performance audits and shadowban guard scans"
     ],
-    priceRange: "From $450 USD / Month",
+    priceRange: "From ₦100,000 (~$75 USD) / Month",
     deliveryTime: "Monthly Retention"
   },
   {
@@ -153,7 +153,7 @@ export const SERVICES_DATA: ServiceItem[] = [
       "Targeted cuts optimized for social platforms (YouTube, Instagram Reels, TikTok)",
       "Completed 4K ultra-resolutions with high-retention pacing models"
     ],
-    priceRange: "From $600 USD",
+    priceRange: "From ₦250,000 (~$190 USD)",
     deliveryTime: "7 - 14 Days"
   },
   {
@@ -168,7 +168,7 @@ export const SERVICES_DATA: ServiceItem[] = [
       "Premium character lip-sync matching and acting movement animations",
       "Bespoke sound effects & commercial broadcast license certificates"
     ],
-    priceRange: "From $750 USD",
+    priceRange: "From ₦120,000 (~$90 USD)",
     deliveryTime: "10 - 20 Days"
   },
   {
@@ -183,7 +183,52 @@ export const SERVICES_DATA: ServiceItem[] = [
       "Audio enhancement, noise extraction, sound effect stacking, and subtitles",
       "Multi-camera sync engineering and motion graphics titles"
     ],
-    priceRange: "From $300 USD",
+    priceRange: "From ₦40,000 (~$30 USD)",
     deliveryTime: "3 - 7 Days"
+  },
+  {
+    id: "graphic-design",
+    title: "Graphic Design",
+    subtitle: "Brand Marks, Single Assets & Visual Identity Systems",
+    category: "design",
+    description: "High-resolution graphic assets, brand typography, bespoke logotypes, and complete corporate identity suites crafted for print and digital supremacy.",
+    deliverables: [
+      "Single graphic flyers, banners, and social posts (print & web ready)",
+      "Bespoke brand logo mark creation with source vectors and usage guides",
+      "Complete corporate identity packages including stationery and brand decks",
+      "Full export suites in SVG, EPS, PNG, and PDF formats"
+    ],
+    priceRange: "From ₦8,000 (~$6 USD)",
+    deliveryTime: "1 - 5 Days"
+  },
+  {
+    id: "software-dev",
+    title: "Software & App Development",
+    subtitle: "Full-Stack Web & Mobile Architecture",
+    category: "development",
+    description: "Custom software engineering ranging from rapid MVP core prototypes to enterprise quantum systems with scalable cloud database backends.",
+    deliverables: [
+      "Cross-platform responsive frontend and mobile interfaces",
+      "Scalable API architecture, secure authentication, and payment gateways",
+      "Cloud database hosting, microservices, and automated testing",
+      "Continuous CI/CD deployment pipelines and comprehensive documentation"
+    ],
+    priceRange: "From ₦450,000 (~$340 USD)",
+    deliveryTime: "14 - 45 Days"
+  },
+  {
+    id: "website-building",
+    title: "Website Building",
+    subtitle: "Aesthetic Web Portals & E-Commerce",
+    category: "development",
+    description: "High-performance websites from 3-day WhatsApp store starter setups to dynamic corporate portals and multi-category e-commerce engines.",
+    deliverables: [
+      "Mobile-optimized responsive layouts with fluid animations",
+      "Direct WhatsApp ordering integration or headless CMS control",
+      "E-commerce carts, payment gateways, and inventory control",
+      "On-page SEO optimization, analytics tracking, and speed tuning"
+    ],
+    priceRange: "From ₦75,000 (~$55 USD)",
+    deliveryTime: "3 - 14 Days"
   }
 ];

@@ -4,13 +4,19 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Sliders, Sparkles, Clock, Coins, ChevronRight, CheckCircle, 
   Check, Lock, Cpu, ArrowRight, X, Shield, Terminal, RefreshCw, Trash2,
-  FileVideo, FileImage, Upload, HelpCircle, HardDrive
+  FileVideo, FileImage, Upload, HelpCircle, HardDrive, ShoppingBag, Layers, Maximize2
 } from "lucide-react";
 import OnboardingTerminal from "./OnboardingTerminal";
+
+import jubilee50thFlyer from "../assets/images/jubilee_50th_flyer_1788666936232.jpg";
+import birthday50thFlyer from "../assets/images/birthday_50th_flyer_1788666949626.jpg";
+import brightsolarFlyer from "../assets/images/brightsolar_flyer_1788666962712.jpg";
+import legacyHomesFlyer from "../assets/images/legacy_homes_flyer_1788666986566.jpg";
 
 interface CheckoutSession {
   title: string;
@@ -29,7 +35,24 @@ interface ActiveNode {
 }
 
 export default function ServiceCatalog() {
-  const [activeTab, setActiveTab] = useState<"targeted_ads" | "social_media" | "video_commercials" | "cartoon_animation" | "video_editing" | "software_dev" | "website_building">("targeted_ads");
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get("category");
+  const validCategories = [
+    "targeted_ads", "social_media", "video_commercials", 
+    "cartoon_animation", "video_editing", "graphic_design", 
+    "software_dev", "website_building"
+  ];
+  const initialCategory = validCategories.includes(categoryParam || "") 
+    ? (categoryParam as "targeted_ads" | "social_media" | "video_commercials" | "cartoon_animation" | "video_editing" | "graphic_design" | "software_dev" | "website_building") 
+    : "targeted_ads";
+
+  const [activeTab, setActiveTab] = useState<"targeted_ads" | "social_media" | "video_commercials" | "cartoon_animation" | "video_editing" | "graphic_design" | "software_dev" | "website_building">(initialCategory);
+
+  useEffect(() => {
+    if (categoryParam && validCategories.includes(categoryParam)) {
+      setActiveTab(categoryParam as any);
+    }
+  }, [categoryParam]);
   const [checkoutSession, setCheckoutSession] = useState<CheckoutSession | null>(null);
   
   // Checkout Multi-Step Funnel State
@@ -51,6 +74,19 @@ export default function ServiceCatalog() {
   // Local persistence for Active Client Nodes (Virtual Deployments)
   const [activeNodes, setActiveNodes] = useState<ActiveNode[]>([]);
   const [initialStep, setInitialStep] = useState<"brief" | "payment" | "activation" | "success">("brief");
+  const [lightboxItem, setLightboxItem] = useState<{ src: string; caption: string; tag: string } | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setLightboxItem(null);
+      }
+    };
+    if (lightboxItem) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxItem]);
 
   useEffect(() => {
     const saved = localStorage.getItem("donmay_active_contracts");
@@ -183,6 +219,7 @@ export default function ServiceCatalog() {
               { id: "video_commercials", name: "Video Commercials" },
               { id: "cartoon_animation", name: "Cartoon Animation" },
               { id: "video_editing", name: "Video Editing" },
+              { id: "graphic_design", name: "Graphic Design" },
               { id: "software_dev", name: "Software & App Dev" },
               { id: "website_building", name: "Website Building" }
             ].map((tab) => (
@@ -233,9 +270,30 @@ export default function ServiceCatalog() {
                       <tbody className="divide-y divide-[#1C64F2]/10 leading-relaxed">
                         <tr>
                           <td className="p-5 font-bold text-white select-none">INVESTMENT MATRIX</td>
-                          <td className="p-5 text-center text-white bg-black/10 font-bold">$500 USD / MO</td>
-                          <td className="p-5 text-center text-[#00F0FF] bg-[#00F0FF]/5 font-black">$1,200 USD / MO</td>
-                          <td className="p-5 text-center text-amber-400 bg-amber-500/5 font-black">$2,800 USD / MO</td>
+                          <td className="p-5 text-center bg-black/10">
+                            <div className="font-mono text-sm text-white font-black">
+                              ₦80,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$60 USD) / mo</span>
+                            </div>
+                            <div className="font-sans text-[9.5px] text-[#A0AEC0] mt-1.5 normal-case font-normal leading-tight">
+                              Ad spend paid directly to Meta/Google — not included in this fee.
+                            </div>
+                          </td>
+                          <td className="p-5 text-center bg-[#00F0FF]/5">
+                            <div className="font-mono text-sm text-[#00F0FF] font-black">
+                              ₦200,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$150 USD) / mo</span>
+                            </div>
+                            <div className="font-sans text-[9.5px] text-[#A0AEC0] mt-1.5 normal-case font-normal leading-tight">
+                              Ad spend paid directly to Meta/Google — not included in this fee.
+                            </div>
+                          </td>
+                          <td className="p-5 text-center bg-amber-500/5">
+                            <div className="font-mono text-sm text-amber-400 font-black">
+                              ₦450,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$340 USD) / mo</span>
+                            </div>
+                            <div className="font-sans text-[9.5px] text-[#A0AEC0] mt-1.5 normal-case font-normal leading-tight">
+                              Ad spend paid directly to Meta/Google — not included in this fee.
+                            </div>
+                          </td>
                         </tr>
                         <tr>
                           <td className="p-5 font-bold text-[#A0AEC0] select-none">CHANNELS FULFILLMENT</td>
@@ -283,7 +341,7 @@ export default function ServiceCatalog() {
                           <td className="p-5 font-bold text-white select-none">DEPLOY SYSTEM NODE</td>
                           <td className="p-5 text-center bg-black/15">
                             <button
-                              onClick={() => handleOpenCheckout("Starter Ads Core Node", "Targeted Advertising", "$500 USD / MO", "Starter Retainer")}
+                              onClick={() => handleOpenCheckout("Starter Ads Core Node", "Targeted Advertising", "₦80,000 (~$60 USD) / mo", "Starter Retainer")}
                               className="px-3 py-2 bg-[#040714] border border-[#1C64F2]/30 text-[#A0AEC0] hover:text-[#00F0FF] hover:border-[#00F0FF] tracking-wider uppercase font-semibold text-[8px] cursor-pointer"
                             >
                               Initialize Core Ads Node // Deploy
@@ -291,7 +349,7 @@ export default function ServiceCatalog() {
                           </td>
                           <td className="p-5 text-center bg-[#00F0FF]/5">
                             <button
-                              onClick={() => handleOpenCheckout("Growth Ads Accelerator", "Targeted Advertising", "$1,200 USD / MO", "Growth Retainer")}
+                              onClick={() => handleOpenCheckout("Growth Ads Accelerator", "Targeted Advertising", "₦200,000 (~$150 USD) / mo", "Growth Retainer")}
                               className="px-3 py-2 rounded bg-[#00F0FF] text-black tracking-widest uppercase font-black text-[8px] cursor-pointer animate-pulse shrink-0"
                             >
                               Initialize Ads Accelerator // Deploy
@@ -299,7 +357,7 @@ export default function ServiceCatalog() {
                           </td>
                           <td className="p-5 text-center bg-amber-500/5">
                             <button
-                              onClick={() => handleOpenCheckout("Omnipresence Ads Dominance", "Targeted Advertising", "$2,800 USD / MO", "Dominance Retainer")}
+                              onClick={() => handleOpenCheckout("Omnipresence Ads Dominance", "Targeted Advertising", "₦450,000 (~$340 USD) / mo", "Dominance Retainer")}
                               className="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-black tracking-widest uppercase font-black text-[8px] cursor-pointer"
                             >
                               Initialize Omnipresence Ads // Deploy
@@ -334,31 +392,25 @@ export default function ServiceCatalog() {
                       <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
                         Starter Pack (Core Node Retainer)
                       </h3>
-                      <p className="font-sans text-[11px] text-[#A0AEC0] uppercase tracking-wide leading-relaxed mb-4">
-                        Elite profile initialization and full channel curation for 1 selected network (LinkedIn, X, Facebook, Instagram, or TikTok).
+
+                      {/* Standalone Platform Count Line */}
+                      <div className="mb-3 py-1 px-2.5 bg-[#00F0FF]/10 border border-[#00F0FF]/30 rounded text-[#00F0FF] font-mono text-xs font-bold uppercase tracking-wider inline-block">
+                        Platforms: Choose 2
+                      </div>
+
+                      <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-6">
+                        4 premium static designs/week, 1 cinematic video edit/week, inbox &amp; comment replies 5 days/week, monthly content calendar, 1 strategy call/month.
                       </p>
-                      <ul className="space-y-1.5 font-sans text-[10px] text-neutral-400 uppercase tracking-wider mb-6">
-                        <li className="flex items-center gap-1.5">
-                          <Check className="w-3 h-3 text-[#00F0FF] shrink-0" />
-                          <span>5 Premium Static Designs / Week</span>
-                        </li>
-                        <li className="flex items-center gap-1.5">
-                          <Check className="w-3 h-3 text-[#00F0FF] shrink-0" />
-                          <span>2 Cinematic Video Edits / Week</span>
-                        </li>
-                        <li className="flex items-center gap-1.5">
-                          <Check className="w-3 h-3 text-[#00F0FF] shrink-0" />
-                          <span>Inbox &amp; Comment Triage Daily</span>
-                        </li>
-                      </ul>
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#1C64F2]/10 pt-4 mb-4">
                         <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">MONTHLY RETENTION:</span>
-                        <span className="font-mono text-sm text-[#00F0FF] font-black">$450 USD / MO</span>
+                        <span className="font-mono text-sm text-[#00F0FF] font-black">
+                          ₦100,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$75 USD) / mo</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Starter Pack SMM Core Node", "Social Media Management", "$450 USD / MO", "Starter Retainer")}
+                        onClick={() => handleOpenCheckout("Starter Pack SMM Core Node", "Social Media Management", "₦100,000 (~$75 USD) / mo", "Starter Retainer")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#00F0FF] border border-[#1C64F2]/40 hover:border-[#00F0FF] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Starter // Deploy Node
@@ -379,31 +431,25 @@ export default function ServiceCatalog() {
                       <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
                         Growth Pack (Revenue Accelerator)
                       </h3>
-                      <p className="font-sans text-[11px] text-[#A0AEC0] uppercase tracking-wide leading-relaxed mb-4">
-                        Comprehensive pages management and accelerated reach across 3 network platforms of your choice.
+
+                      {/* Standalone Platform Count Line */}
+                      <div className="mb-3 py-1 px-2.5 bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 rounded text-[#8B5CF6] font-mono text-xs font-bold uppercase tracking-wider inline-block">
+                        Platforms: Choose 3
+                      </div>
+
+                      <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-6">
+                        8 premium static designs/week, 2 cinematic video edits/week, active community engagement, bi-weekly strategy calls, monthly competitor content check.
                       </p>
-                      <ul className="space-y-1.5 font-sans text-[10px] text-neutral-400 uppercase tracking-wider mb-6">
-                        <li className="flex items-center gap-1.5">
-                          <Check className="w-3 h-3 text-[#8B5CF6] shrink-0" />
-                          <span>10 Premium Static Designs / Week</span>
-                        </li>
-                        <li className="flex items-center gap-1.5">
-                          <Check className="w-3 h-3 text-[#8B5CF6] shrink-0" />
-                          <span>4 Cinematic Video Edits / Week</span>
-                        </li>
-                        <li className="flex items-center gap-1.5">
-                          <Check className="w-3 h-3 text-[#8B5CF6] shrink-0" />
-                          <span>Active Community Engagement Loops</span>
-                        </li>
-                      </ul>
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#8B5CF6]/20 pt-4 mb-4">
                         <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">MONTHLY RETENTION:</span>
-                        <span className="font-mono text-sm text-[#8B5CF6] font-black">$950 USD / MO</span>
+                        <span className="font-mono text-sm text-[#8B5CF6] font-black">
+                          ₦250,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$190 USD) / mo</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Growth Pack SMM Accelerated Node", "Social Media Management", "$950 USD / MO", "Growth Retainer")}
+                        onClick={() => handleOpenCheckout("Growth Pack SMM Accelerated Node", "Social Media Management", "₦250,000 (~$190 USD) / mo", "Growth Retainer")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#8B5CF6] border border-[#8B5CF6]/40 hover:border-[#8B5CF6] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Brand Growth // Deploy
@@ -424,31 +470,25 @@ export default function ServiceCatalog() {
                       <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
                         Dominance Command Retainer
                       </h3>
-                      <p className="font-sans text-[11px] text-[#A0AEC0] uppercase tracking-wide leading-relaxed mb-4">
-                        Full-scale omnipresent management, brand security, and high-pacing content scaling across 5 network platforms.
+
+                      {/* Standalone Platform Count Line */}
+                      <div className="mb-3 py-1 px-2.5 bg-amber-500/10 border border-amber-500/30 rounded text-[#F59E0B] font-mono text-xs font-bold uppercase tracking-wider inline-block">
+                        Platforms: Choose 5
+                      </div>
+
+                      <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-6">
+                        12 premium static designs/week, 4 cinematic video edits/week, priority moderation &amp; response (business hours + weekend coverage), dedicated account manager, quarterly brand audit.
                       </p>
-                      <ul className="space-y-1.5 font-sans text-[10px] text-neutral-400 uppercase tracking-wider mb-6">
-                        <li className="flex items-center gap-1.5">
-                          <Check className="w-3 h-3 text-[#F59E0B] shrink-0" />
-                          <span>15 Premium Static Designs / Week</span>
-                        </li>
-                        <li className="flex items-center gap-1.5">
-                          <Check className="w-3 h-3 text-[#F59E0B] shrink-0" />
-                          <span>8 Cinematic Video Edits / Week</span>
-                        </li>
-                        <li className="flex items-center gap-1.5">
-                          <Check className="w-3 h-3 text-[#F59E0B] shrink-0" />
-                          <span>24/7 Moderation &amp; Direct Slack SLA</span>
-                        </li>
-                      </ul>
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-amber-500/20 pt-4 mb-4">
                         <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">MONTHLY RETENTION:</span>
-                        <span className="font-mono text-sm text-[#F59E0B] font-black">$1,800 USD / MO</span>
+                        <span className="font-mono text-sm text-[#F59E0B] font-black">
+                          ₦600,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$450 USD) / mo</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Dominance Command SMM Node", "Social Media Management", "$1,800 USD / MO", "Dominance Retainer")}
+                        onClick={() => handleOpenCheckout("Dominance Command SMM Node", "Social Media Management", "₦600,000 (~$450 USD) / mo", "Dominance Retainer")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-amber-500 border border-amber-500/40 hover:border-amber-500 text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Dominance // Deploy
@@ -486,11 +526,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#1C64F2]/10 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#00F0FF] font-black">$600 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#00F0FF] font-black">
+                          ₦250,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$190 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Social Hype Commercial (30s)", "Video Commercials", "$600 USD", "Starter Commercial")}
+                        onClick={() => handleOpenCheckout("Social Hype Commercial (30s)", "Video Commercials", "₦250,000 (~$190 USD)", "Starter Commercial")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#00F0FF] border border-[#1C64F2]/40 hover:border-[#00F0FF] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Commercial // Deploy
@@ -517,11 +559,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#8B5CF6]/20 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#8B5CF6] font-black">$1,500 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#8B5CF6] font-black">
+                          ₦550,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$410 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Corporate Event Feature (90s)", "Video Commercials", "$1,500 USD", "Corporate Commercial")}
+                        onClick={() => handleOpenCheckout("Corporate Event Feature (90s)", "Video Commercials", "₦550,000 (~$410 USD)", "Corporate Commercial")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#8B5CF6] border border-[#8B5CF6]/40 hover:border-[#8B5CF6] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Corporate Feature // Deploy
@@ -548,11 +592,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-amber-500/20 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-amber-400 font-black">$3,000 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#F59E0B] font-black">
+                          ₦1,200,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$900 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Premium Product Launch Suite", "Video Commercials", "$3,000 USD", "Launch Master")}
+                        onClick={() => handleOpenCheckout("Premium Product Launch Suite", "Video Commercials", "₦1,200,000 (~$900 USD)", "Launch Master")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-amber-400 border border-amber-500/40 hover:border-amber-500 text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Launch Suite // Deploy
@@ -590,11 +636,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#1C64F2]/10 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#00F0FF] font-black">$750 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#00F0FF] font-black">
+                          ₦120,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$90 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Short Character Asset (15s)", "Cartoon Animation", "$750 USD", "Asset Plan")}
+                        onClick={() => handleOpenCheckout("Short Character Asset (15s)", "Cartoon Animation", "₦120,000 (~$90 USD)", "Asset Plan")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#00F0FF] border border-[#1C64F2]/40 hover:border-[#00F0FF] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Character // Deploy
@@ -623,11 +671,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#8B5CF6]/20 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#8B5CF6] font-black">$1,800 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#8B5CF6] font-black">
+                          ₦350,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$260 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Animated Narrative Spot (60s)", "Cartoon Animation", "$1,800 USD", "Spot Plan")}
+                        onClick={() => handleOpenCheckout("Animated Narrative Spot (60s)", "Cartoon Animation", "₦350,000 (~$260 USD)", "Spot Plan")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#8B5CF6] border border-[#8B5CF6]/40 hover:border-[#8B5CF6] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Narrative Spot // Deploy
@@ -654,11 +704,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-amber-500/20 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#F59E0B] font-black">$4,500 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#F59E0B] font-black">
+                          ₦900,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$680 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Premium Pilot Episode (3m)", "Cartoon Animation", "$4,500 USD", "Pilot Plan")}
+                        onClick={() => handleOpenCheckout("Premium Pilot Episode (3m)", "Cartoon Animation", "₦900,000 (~$680 USD)", "Pilot Plan")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-amber-500 border border-amber-500/40 hover:border-amber-500 text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Campaign Pilot // Deploy
@@ -696,11 +748,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#1C64F2]/10 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#00F0FF] font-black">$300 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#00F0FF] font-black">
+                          ₦40,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$30 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Retention Edit Lite", "Video Editing", "$300 USD", "Lite Editing")}
+                        onClick={() => handleOpenCheckout("Retention Edit Lite", "Video Editing", "₦40,000 (~$30 USD)", "Lite Editing")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#00F0FF] border border-[#1C64F2]/40 hover:border-[#00F0FF] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Lite Trim // Deploy
@@ -727,11 +781,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#8B5CF6]/20 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#8B5CF6] font-black">$800 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#8B5CF6] font-black">
+                          ₦120,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$90 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Pro Narrative Trim", "Video Editing", "$800 USD", "Pro Editing")}
+                        onClick={() => handleOpenCheckout("Pro Narrative Trim", "Video Editing", "₦120,000 (~$90 USD)", "Pro Editing")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#8B5CF6] border border-[#8B5CF6]/40 hover:border-[#8B5CF6] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Pro Editing // Deploy
@@ -758,15 +814,332 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-amber-500/20 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#F59E0B] font-black">$2,000 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#F59E0B] font-black">
+                          ₦350,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$260 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Cinematic Masterpiece", "Video Editing", "$2,000 USD", "Masterpiece Editing")}
+                        onClick={() => handleOpenCheckout("Cinematic Masterpiece", "Video Editing", "₦350,000 (~$260 USD)", "Masterpiece Editing")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-amber-500 border border-amber-500/40 hover:border-amber-500 text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Masterpiece // Deploy
                       </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* GRAPHIC DESIGN TAB */}
+              {activeTab === "graphic_design" && (
+                <motion.div
+                  key="graphic-design-pane"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  className="space-y-12"
+                >
+                  {/* PRICING CARDS GRID */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Card 1 - Single Graphic */}
+                    <div className="p-6 rounded border border-[#1C64F2]/20 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-[#00F0FF] hover:shadow-[0_0_20px_rgba(0,240,255,0.08)] transition-all">
+                      <div>
+                        <span className="font-mono text-[9px] text-[#00F0FF] tracking-widest uppercase block mb-3 font-semibold">
+                          DESIGN // SINGLE ASSET
+                        </span>
+                        <div className="relative w-full h-28 bg-black/45 rounded border border-[#1C64F2]/10 overflow-hidden flex flex-col justify-center items-center mb-5">
+                          <FileImage className="w-8 h-8 text-white/50" />
+                          <span className="font-mono text-[7px] text-[#00F0FF] mt-1 font-semibold">PRINT &amp; POST READY VECTOR</span>
+                        </div>
+                        <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
+                          Single Graphic
+                        </h3>
+                        <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-3">
+                          One flyer, banner, or social media graphic, delivered print- and post-ready.
+                        </p>
+                        <p className="font-sans text-[11px] text-[#00F0FF]/90 leading-relaxed mb-6 border-t border-[#1C64F2]/15 pt-2">
+                          Need just a church/event flyer? Single premium flyer: <span className="font-bold text-white">₦30,000 (~$22 USD)</span>.
+                        </p>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-baseline border-t border-[#1C64F2]/10 pt-4 mb-4">
+                          <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                          <span className="font-mono text-sm text-[#00F0FF] font-black">
+                            ₦8,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$6 USD)</span>
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleOpenCheckout("Single Graphic", "Graphic Design", "₦8,000 (~$6 USD)", "Single Graphic")}
+                          className="w-full py-3 bg-[#080B1C] hover:bg-[#00F0FF] border border-[#1C64F2]/40 hover:border-[#00F0FF] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
+                        >
+                          Select Single Graphic // Deploy
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card 2 - Logo Design */}
+                    <div className="p-6 rounded border border-purple-500/30 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-[#8B5CF6] hover:shadow-[0_0_20px_rgba(139,92,246,0.08)] transition-all">
+                      <div>
+                        <span className="font-mono text-[9px] text-[#8B5CF6] tracking-widest uppercase block mb-3 font-semibold">
+                          DESIGN // BRAND MARK
+                        </span>
+                        <div className="relative w-full h-28 bg-black/45 rounded border border-[#8B5CF6]/20 overflow-hidden flex flex-col justify-center items-center mb-5">
+                          <Sparkles className="w-8 h-8 text-[#8B5CF6]" />
+                          <span className="font-mono text-[7px] text-[#8B5CF6] mt-1 font-semibold">SOURCE VECTOR &amp; GUIDELINES</span>
+                        </div>
+                        <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
+                          Logo Design
+                        </h3>
+                        <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-6">
+                          A custom logo for your business, with source files and usage guidelines.
+                        </p>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-baseline border-t border-[#8B5CF6]/20 pt-4 mb-4">
+                          <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                          <span className="font-mono text-sm text-[#8B5CF6] font-black">
+                            ₦40,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$30 USD)</span>
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleOpenCheckout("Logo Design", "Graphic Design", "₦40,000 (~$30 USD)", "Logo Design")}
+                          className="w-full py-3 bg-[#080B1C] hover:bg-[#8B5CF6] border border-[#8B5CF6]/40 hover:border-[#8B5CF6] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
+                        >
+                          Select Logo Design // Deploy
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card 3 - Complete Brand Package */}
+                    <div className="p-6 rounded border border-amber-500/20 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.08)] transition-all">
+                      <div>
+                        <span className="font-mono text-[9px] text-[#F59E0B] tracking-widest uppercase block mb-3 font-semibold">
+                          DESIGN // FULL IDENTITY
+                        </span>
+                        <div className="relative w-full h-28 bg-black/45 rounded border border-amber-500/20 overflow-hidden flex flex-col justify-center items-center mb-5">
+                          <Sliders className="w-8 h-8 text-[#F59E0B] animate-pulse" />
+                          <span className="font-mono text-[7px] text-amber-400 mt-1 font-semibold">TOTAL BRAND IDENTITY SYSTEM</span>
+                        </div>
+                        <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
+                          Complete Brand Package
+                        </h3>
+                        <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-6">
+                          Logo, business card, letterhead, and social media templates — a full starting identity for your brand.
+                        </p>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-baseline border-t border-amber-500/20 pt-4 mb-4">
+                          <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                          <span className="font-mono text-sm text-[#F59E0B] font-black">
+                            ₦280,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$210 USD)</span>
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleOpenCheckout("Complete Brand Package", "Graphic Design", "₦280,000 (~$210 USD)", "Complete Brand Package")}
+                          className="w-full py-3 bg-[#080B1C] hover:bg-amber-500 border border-amber-500/40 hover:border-amber-500 text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
+                        >
+                          Select Brand Package // Deploy
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card 4 - Church Event Package */}
+                    <div className="p-6 rounded border border-emerald-500/25 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-emerald-400 hover:shadow-[0_0_20px_rgba(52,211,153,0.08)] transition-all">
+                      <div>
+                        <span className="font-mono text-[9px] text-emerald-400 tracking-widest uppercase block mb-3 font-semibold">
+                          DESIGN // CHURCH &amp; EVENT
+                        </span>
+                        <div className="relative w-full h-28 bg-black/45 rounded border border-emerald-500/20 overflow-hidden flex flex-col justify-center items-center mb-5">
+                          <Layers className="w-8 h-8 text-emerald-400" />
+                          <span className="font-mono text-[7px] text-emerald-400 mt-1 font-semibold">FLYER + SOCIAL + BANNER SUITE</span>
+                        </div>
+                        <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
+                          Church Event Package
+                        </h3>
+                        <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-6">
+                          A complete flyer package for one church or event program — print flyer, matching social media version, and a banner/backdrop design, all in one set.
+                        </p>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-baseline border-t border-emerald-500/20 pt-4 mb-4">
+                          <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                          <span className="font-mono text-sm text-emerald-400 font-black">
+                            ₦70,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$52 USD)</span>
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleOpenCheckout("Church Event Package", "Graphic Design", "₦70,000 (~$52 USD)", "Church Event Package")}
+                          className="w-full py-3 bg-[#080B1C] hover:bg-emerald-400 border border-emerald-500/40 hover:border-emerald-400 text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
+                        >
+                          Select Event Package // Deploy
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* OUR WORK // DEPLOYED ASSETS PORTFOLIO SECTION */}
+                  <div className="mt-14 pt-10 border-t border-[#1C64F2]/20">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse" />
+                          <h3 className="font-mono text-sm text-[#00F0FF] tracking-widest uppercase font-bold">
+                            OUR WORK // DEPLOYED ASSETS
+                          </h3>
+                        </div>
+                        <p className="font-sans text-xs sm:text-sm text-[#A0AEC0]">
+                          Real designs delivered for real events and brands.
+                        </p>
+                      </div>
+                      <span className="font-mono text-[9px] text-[#A0AEC0] border border-white/10 px-2.5 py-1 rounded bg-black/40">
+                        CLICK IMAGE TO VIEW FULL SIZE
+                      </span>
+                    </div>
+
+                    {/* ROW 1: MILESTONE CELEBRATIONS */}
+                    <div className="mb-10">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF]" />
+                        <span className="font-mono text-[10px] text-[#00F0FF] tracking-widest uppercase font-bold">
+                          MILESTONE CELEBRATIONS
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Image 1 */}
+                        <div
+                          onClick={() => setLightboxItem({
+                            src: jubilee50thFlyer,
+                            caption: "Church celebration flyer — 50th Jubilee",
+                            tag: "MILESTONE CELEBRATIONS"
+                          })}
+                          className="p-6 rounded border border-[#1C64F2]/20 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-[#00F0FF] hover:shadow-[0_0_20px_rgba(0,240,255,0.08)] transition-all cursor-pointer"
+                        >
+                          <div className="relative w-full aspect-[4/3] bg-black/50 rounded border border-[#1C64F2]/15 overflow-hidden flex items-center justify-center mb-4">
+                            <img
+                              src={jubilee50thFlyer}
+                              alt="Church celebration flyer — 50th Jubilee"
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 font-mono text-[9.5px] text-[#00F0FF] tracking-wider uppercase backdrop-blur-[2px]">
+                              <Maximize2 className="w-3.5 h-3.5" />
+                              <span>View Full Size</span>
+                            </div>
+                          </div>
+                          <div className="border-t border-[#1C64F2]/10 pt-3 flex justify-between items-center">
+                            <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed">
+                              Church celebration flyer — 50th Jubilee
+                            </p>
+                            <span className="font-mono text-[8.5px] text-[#00F0FF]/80 uppercase ml-2 tracking-wider shrink-0">
+                              EXPAND
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Image 2 */}
+                        <div
+                          onClick={() => setLightboxItem({
+                            src: birthday50thFlyer,
+                            caption: "Church celebration flyer — 50th Birthday",
+                            tag: "MILESTONE CELEBRATIONS"
+                          })}
+                          className="p-6 rounded border border-[#1C64F2]/20 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-[#00F0FF] hover:shadow-[0_0_20px_rgba(0,240,255,0.08)] transition-all cursor-pointer"
+                        >
+                          <div className="relative w-full aspect-[4/3] bg-black/50 rounded border border-[#1C64F2]/15 overflow-hidden flex items-center justify-center mb-4">
+                            <img
+                              src={birthday50thFlyer}
+                              alt="Church celebration flyer — 50th Birthday"
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 font-mono text-[9.5px] text-[#00F0FF] tracking-wider uppercase backdrop-blur-[2px]">
+                              <Maximize2 className="w-3.5 h-3.5" />
+                              <span>View Full Size</span>
+                            </div>
+                          </div>
+                          <div className="border-t border-[#1C64F2]/10 pt-3 flex justify-between items-center">
+                            <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed">
+                              Church celebration flyer — 50th Birthday
+                            </p>
+                            <span className="font-mono text-[8.5px] text-[#00F0FF]/80 uppercase ml-2 tracking-wider shrink-0">
+                              EXPAND
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ROW 2: BUSINESS & MARKETING */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6]" />
+                        <span className="font-mono text-[10px] text-[#8B5CF6] tracking-widest uppercase font-bold">
+                          BUSINESS &amp; MARKETING
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Image 3 */}
+                        <div
+                          onClick={() => setLightboxItem({
+                            src: brightsolarFlyer,
+                            caption: "Client work — BrightSolar Solutions, event flyer",
+                            tag: "BUSINESS & MARKETING"
+                          })}
+                          className="p-6 rounded border border-purple-500/25 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-[#8B5CF6] hover:shadow-[0_0_20px_rgba(139,92,246,0.08)] transition-all cursor-pointer"
+                        >
+                          <div className="relative w-full aspect-[4/3] bg-black/50 rounded border border-[#8B5CF6]/20 overflow-hidden flex items-center justify-center mb-4">
+                            <img
+                              src={brightsolarFlyer}
+                              alt="Client work — BrightSolar Solutions, event flyer"
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 font-mono text-[9.5px] text-[#8B5CF6] tracking-wider uppercase backdrop-blur-[2px]">
+                              <Maximize2 className="w-3.5 h-3.5" />
+                              <span>View Full Size</span>
+                            </div>
+                          </div>
+                          <div className="border-t border-[#8B5CF6]/20 pt-3 flex justify-between items-center">
+                            <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed">
+                              Client work — BrightSolar Solutions, event flyer
+                            </p>
+                            <span className="font-mono text-[8.5px] text-[#8B5CF6]/90 uppercase ml-2 tracking-wider shrink-0">
+                              EXPAND
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Image 4 */}
+                        <div
+                          onClick={() => setLightboxItem({
+                            src: legacyHomesFlyer,
+                            caption: "Client work — Legacy Homes & Properties, marketing flyer",
+                            tag: "BUSINESS & MARKETING"
+                          })}
+                          className="p-6 rounded border border-amber-500/20 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.08)] transition-all cursor-pointer"
+                        >
+                          <div className="relative w-full aspect-[4/3] bg-black/50 rounded border border-amber-500/20 overflow-hidden flex items-center justify-center mb-4">
+                            <img
+                              src={legacyHomesFlyer}
+                              alt="Client work — Legacy Homes & Properties, marketing flyer"
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 font-mono text-[9.5px] text-[#F59E0B] tracking-wider uppercase backdrop-blur-[2px]">
+                              <Maximize2 className="w-3.5 h-3.5" />
+                              <span>View Full Size</span>
+                            </div>
+                          </div>
+                          <div className="border-t border-amber-500/20 pt-3 flex justify-between items-center">
+                            <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed">
+                              Client work — Legacy Homes & Properties, marketing flyer
+                            </p>
+                            <span className="font-mono text-[8.5px] text-amber-400/90 uppercase ml-2 tracking-wider shrink-0">
+                              EXPAND
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -800,11 +1173,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#1C64F2]/10 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#00F0FF] font-black">$1,200 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#00F0FF] font-black">
+                          ₦450,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$340 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("MVP Software Core Node", "Software & App Dev", "$1,200 USD", "MVP Core")}
+                        onClick={() => handleOpenCheckout("MVP Software Core Node", "Software & App Dev", "₦450,000 (~$340 USD)", "MVP Core")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#00F0FF] border border-[#1C64F2]/40 hover:border-[#00F0FF] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select MVP Development // Deploy
@@ -831,11 +1206,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#8B5CF6]/20 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#8B5CF6] font-black">$3,500 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#8B5CF6] font-black">
+                          ₦1,800,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$1,350 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Professional Scaled System", "Software & App Dev", "$3,500 USD", "Professional System")}
+                        onClick={() => handleOpenCheckout("Professional Scaled System", "Software & App Dev", "₦1,800,000 (~$1,350 USD)", "Professional System")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#8B5CF6] border border-[#8B5CF6]/40 hover:border-[#8B5CF6] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Pro System // Deploy
@@ -862,11 +1239,13 @@ export default function ServiceCatalog() {
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-amber-500/20 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#F59E0B] font-black">$8,500 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#F59E0B] font-black">
+                          ₦4,500,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$3,400 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Enterprise Quantum Pipeline", "Software & App Dev", "$8,500 USD", "Enterprise Quantum")}
+                        onClick={() => handleOpenCheckout("Enterprise Quantum Pipeline", "Software & App Dev", "₦4,500,000 (~$3,400 USD)", "Enterprise Quantum")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-amber-400 border border-amber-500/40 hover:border-amber-500 text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Enterprise dev // Deploy
@@ -883,9 +1262,42 @@ export default function ServiceCatalog() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -12 }}
-                  className="grid grid-cols-1 md:grid-cols-3 gap-8"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
                 >
-                  {/* Card 1 */}
+                  {/* Card 0 - Store Starter */}
+                  <div className="p-6 rounded border border-[#1C64F2]/20 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-[#00F0FF] hover:shadow-[0_0_20px_rgba(0,240,255,0.08)] transition-all">
+                    <div>
+                      <span className="font-mono text-[9px] text-[#00F0FF] tracking-widest uppercase block mb-3 font-semibold">
+                        AESTHETIC // STORE STARTER
+                      </span>
+                      <div className="relative w-full h-28 bg-black/45 rounded border border-[#1C64F2]/10 overflow-hidden flex flex-col justify-center items-center mb-5">
+                        <ShoppingBag className="w-8 h-8 text-white/50" />
+                        <span className="font-mono text-[7px] text-[#00F0FF] mt-1">DIRECT WHATSAPP STORE // 3-DAY DISPATCH</span>
+                      </div>
+                      <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
+                        Store Starter
+                      </h3>
+                      <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-6">
+                        A simple 1-page site for small stores and shops. Up to 8 products or services listed, a WhatsApp button so customers can order directly, and a clean mobile-friendly design. Delivered in 3 days. Domain and hosting are quoted separately, not included.
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-baseline border-t border-[#1C64F2]/10 pt-4 mb-4">
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#00F0FF] font-black">
+                          ₦75,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$55 USD)</span>
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleOpenCheckout("Store Starter", "Website Building", "₦75,000 (~$55 USD)", "Store Starter")}
+                        className="w-full py-3 bg-[#080B1C] hover:bg-[#00F0FF] border border-[#1C64F2]/40 hover:border-[#00F0FF] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
+                      >
+                        Select Store Starter // Deploy Node
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Card 1 - Aesthetic Business Landing Page */}
                   <div className="p-6 rounded border border-[#1C64F2]/20 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-[#00F0FF] hover:shadow-[0_0_20px_rgba(0,240,255,0.08)] transition-all">
                     <div>
                       <span className="font-mono text-[9px] text-[#00F0FF] tracking-widest uppercase block mb-3 font-semibold">
@@ -898,17 +1310,22 @@ export default function ServiceCatalog() {
                       <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
                         Aesthetic Business Landing Page
                       </h3>
-                      <p className="font-sans text-xs text-[#A0AEC0] uppercase tracking-wide leading-relaxed mb-6">
+                      <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-3">
                         Hyper-polished single page representation featuring eye-safe dark backdrops, fluid custom layout transitions, and embedded lead tracking pixels.
+                      </p>
+                      <p className="font-sans text-[11.5px] text-[#A0AEC0]/90 leading-normal mb-6">
+                        Domain and hosting quoted separately.
                       </p>
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#1C64F2]/10 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#00F0FF] font-black">$400 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#00F0FF] font-black">
+                          ₦200,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$150 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Aesthetic Business Landing Page", "Website Building", "$400 USD", "Aesthetic Landing")}
+                        onClick={() => handleOpenCheckout("Aesthetic Business Landing Page", "Website Building", "₦200,000 (~$150 USD)", "Aesthetic Landing")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#00F0FF] border border-[#1C64F2]/40 hover:border-[#00F0FF] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Landing // Deploy Node
@@ -916,7 +1333,7 @@ export default function ServiceCatalog() {
                     </div>
                   </div>
 
-                  {/* Card 2 */}
+                  {/* Card 2 - Dynamic Corporate Site */}
                   <div className="p-6 rounded border border-purple-500/30 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-[#8B5CF6] hover:shadow-[0_0_20px_rgba(139,92,246,0.08)] transition-all">
                     <div>
                       <span className="font-mono text-[9px] text-[#8B5CF6] tracking-widest uppercase block mb-3 font-semibold">
@@ -929,17 +1346,22 @@ export default function ServiceCatalog() {
                       <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
                         Dynamic Corporate Site
                       </h3>
-                      <p className="font-sans text-xs text-[#A0AEC0] uppercase tracking-wide leading-relaxed mb-6">
+                      <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-3">
                         Multi-page comprehensive internet portal detailing corporate features, structured team directories, on-page SEO schema triggers, and full CMS support.
+                      </p>
+                      <p className="font-sans text-[11.5px] text-[#A0AEC0]/90 leading-normal mb-6">
+                        Domain and hosting quoted separately.
                       </p>
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-[#8B5CF6]/20 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[#8B5CF6] font-black">$950 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#8B5CF6] font-black">
+                          ₦650,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$490 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Dynamic Corporate Site", "Website Building", "$950 USD", "Corporate Site")}
+                        onClick={() => handleOpenCheckout("Dynamic Corporate Site", "Website Building", "₦650,000 (~$490 USD)", "Corporate Site")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-[#8B5CF6] border border-[#8B5CF6]/40 hover:border-[#8B5CF6] text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select Corporate Site // Deploy
@@ -947,7 +1369,7 @@ export default function ServiceCatalog() {
                     </div>
                   </div>
 
-                  {/* Card 3 */}
+                  {/* Card 3 - Premium E-Commerce Vault */}
                   <div className="p-6 rounded border border-amber-500/20 bg-[#080B1C]/50 flex flex-col justify-between group hover:border-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.08)] transition-all">
                     <div>
                       <span className="font-mono text-[9px] text-[#F59E0B] tracking-widest uppercase block mb-3 font-semibold">
@@ -960,17 +1382,22 @@ export default function ServiceCatalog() {
                       <h3 className="font-display font-bold text-base text-white uppercase tracking-wider mb-2">
                         Premium E-Commerce Vault
                       </h3>
-                      <p className="font-sans text-xs text-[#A0AEC0] uppercase tracking-wide leading-relaxed mb-6">
+                      <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed mb-3">
                         Complete digital commerce platform configured with product categories, stock level triggers, and automatic customer invoice dispatch routines.
+                      </p>
+                      <p className="font-sans text-[11.5px] text-[#A0AEC0]/90 leading-normal mb-6">
+                        Domain and hosting quoted separately.
                       </p>
                     </div>
                     <div>
                       <div className="flex justify-between items-baseline border-t border-amber-500/20 pt-4 mb-4">
-                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase">INVESTMENT:</span>
-                        <span className="font-mono text-sm text-[2,200 USD] font-black">$2,200 USD</span>
+                        <span className="font-mono text-[10px] text-[#A0AEC0] uppercase font-bold">INVESTMENT:</span>
+                        <span className="font-mono text-sm text-[#F59E0B] font-black">
+                          ₦1,100,000 <span className="text-[11px] font-normal text-[#A0AEC0]">(~$830 USD)</span>
+                        </span>
                       </div>
                       <button
-                        onClick={() => handleOpenCheckout("Premium E-Commerce Vault", "Website Building", "$2,200 USD", "E-Commerce Vault")}
+                        onClick={() => handleOpenCheckout("Premium E-Commerce Vault", "Website Building", "₦1,100,000 (~$830 USD)", "E-Commerce Vault")}
                         className="w-full py-3 bg-[#080B1C] hover:bg-amber-500 border border-amber-500/40 hover:border-amber-500 text-white hover:text-black font-mono text-[10.5px] uppercase tracking-widest transition-colors cursor-pointer"
                       >
                         Select E-Commerce Store // Deploy
@@ -1051,6 +1478,72 @@ export default function ServiceCatalog() {
             onComplete={handleOnboardingComplete}
             initialStep={initialStep}
           />
+        )}
+
+        {/* 3. FULLSCREEN PORTFOLIO LIGHTBOX MODAL */}
+        {lightboxItem && (
+          <motion.div
+            key="portfolio-lightbox"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setLightboxItem(null)}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 cursor-zoom-out"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="relative max-w-2xl w-full bg-[#080B1C] border border-[#1C64F2]/30 rounded-lg overflow-hidden p-4 cursor-default shadow-[0_0_50px_rgba(0,240,255,0.12)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex justify-between items-center pb-3 border-b border-[#1C64F2]/20 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-ping" />
+                  <span className="font-mono text-[9px] text-[#00F0FF] tracking-widest uppercase font-bold">
+                    {lightboxItem.tag} // DEPLOYED ASSET
+                  </span>
+                </div>
+                <button
+                  onClick={() => setLightboxItem(null)}
+                  className="p-1 text-[#A0AEC0] hover:text-white rounded border border-white/10 hover:border-white/30 bg-black/40 transition-colors cursor-pointer"
+                  title="Close (Esc)"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* High-res Image View */}
+              <div className="relative rounded overflow-hidden max-h-[70vh] flex items-center justify-center bg-black/70 border border-white/5">
+                <img
+                  src={lightboxItem.src}
+                  alt={lightboxItem.caption}
+                  referrerPolicy="no-referrer"
+                  className="max-h-[68vh] w-auto max-w-full object-contain rounded"
+                />
+              </div>
+
+              {/* Caption & Controls Footer */}
+              <div className="pt-3 border-t border-[#1C64F2]/20 mt-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <p className="font-sans text-xs text-[#A0AEC0] leading-relaxed">
+                  {lightboxItem.caption}
+                </p>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-[8.5px] text-[#00F0FF] uppercase tracking-wider">
+                    VERIFIED CLIENT DISPATCH
+                  </span>
+                  <button
+                    onClick={() => setLightboxItem(null)}
+                    className="px-2.5 py-1 text-[9px] font-mono uppercase rounded border border-[#1C64F2]/40 bg-[#1C64F2]/10 hover:bg-[#00F0FF] hover:text-black text-white transition-colors cursor-pointer"
+                  >
+                    CLOSE [ESC]
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

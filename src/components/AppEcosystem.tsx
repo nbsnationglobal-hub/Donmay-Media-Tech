@@ -20,9 +20,22 @@ import {
 
 interface AppEcosystemProps {
   onSelectApp: (app: AppNode) => void;
+  isTeaser?: boolean;
+  limit?: number;
+  onSeeAllApps?: () => void;
 }
 
-export default function AppEcosystem({ onSelectApp }: AppEcosystemProps) {
+export default function AppEcosystem({ 
+  onSelectApp, 
+  isTeaser = false, 
+  limit, 
+  onSeeAllApps 
+}: AppEcosystemProps) {
+  // If in teaser mode or limit is provided, select the strongest 3 applications: Kamsir Studio, QuantSync, MediaHero
+  const displayApps = (isTeaser || limit)
+    ? APPLICATIONS_DATA.filter((app) => ["kamsir", "quantsync", "media_hero"].includes(app.id)).slice(0, limit || 3)
+    : APPLICATIONS_DATA;
+
   // Assign customized premium icons to our proprietary apps
   const getAppIcon = (type: string) => {
     switch (type) {
@@ -78,23 +91,25 @@ export default function AppEcosystem({ onSelectApp }: AppEcosystemProps) {
           <div>
             <div className="flex items-center justify-center md:justify-start gap-2 text-[#00F0FF] font-mono text-xs tracking-wider mb-3">
               <Server className="w-4 h-4 animate-pulse" />
-              <span>INFRASTRUCTURE NODE CLUSTER Map // RUNNING</span>
+              <span>{isTeaser ? "PROPRIETARY SOFTWARE // TEASER" : "INFRASTRUCTURE NODE CLUSTER Map // RUNNING"}</span>
             </div>
             <h2 className="font-display font-black text-2xl md:text-4xl text-white tracking-widest uppercase">
               OUR APPS
             </h2>
             <p className="font-sans text-sm text-[#A0AEC0] mt-3 uppercase tracking-wide max-w-xl">
-              Click individual terminals below to initialize active live simulation grids and premium pipeline channels.
+              {isTeaser 
+                ? "Experience our flagship proprietary software terminals and active simulation grids." 
+                : "Click individual terminals below to initialize active live simulation grids and premium pipeline channels."}
             </p>
           </div>
           <span className="font-mono text-[10px] text-[#A0AEC0] tracking-widest uppercase self-center md:self-end">
-            SYS_HEALTH: OPTIMAL // ONLINE_NODES: {APPLICATIONS_DATA.length < 10 ? `0${APPLICATIONS_DATA.length}` : APPLICATIONS_DATA.length}
+            SYS_HEALTH: OPTIMAL // {isTeaser ? `FEATURED: 0${displayApps.length}` : `ONLINE_NODES: ${displayApps.length < 10 ? `0${displayApps.length}` : displayApps.length}`}
           </span>
         </div>
 
         {/* Dynamic Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="app-cluster-grid">
-          {APPLICATIONS_DATA.map((app, idx) => (
+          {displayApps.map((app, idx) => (
             <motion.div
               key={app.id}
               initial={{ opacity: 0, y: 20 }}
@@ -152,6 +167,20 @@ export default function AppEcosystem({ onSelectApp }: AppEcosystemProps) {
             </motion.div>
           ))}
         </div>
+
+        {/* Teaser CTA link: See All Apps */}
+        {isTeaser && (
+          <div className="mt-12 text-center">
+            <button
+              onClick={onSeeAllApps}
+              id="btn-see-all-apps"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-lg bg-[#080B1C] border border-[#1C64F2]/40 hover:border-[#00F0FF] hover:bg-[#1C64F2]/15 text-white hover:text-[#00F0FF] font-mono text-xs uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(28,100,242,0.15)] cursor-pointer group"
+            >
+              <span>See All Apps</span>
+              <ArrowRight className="w-4 h-4 text-[#00F0FF] group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        )}
 
       </div>
     </section>
