@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import OnboardingTerminal from "./OnboardingTerminal";
 
-import jubilee50thFlyer from "../assets/images/jubilee_50th_flyer_1788666936232.jpg";
+import jubilee50thFlyer from "../assets/images/jubilee_50th_flyer_1788666936232.png";
 import birthday50thFlyer from "../assets/images/birthday_50th_flyer_1788666949626.jpg";
 import brightsolarFlyer from "../assets/images/brightsolar_flyer_1788666962712.jpg";
 import legacyHomesFlyer from "../assets/images/legacy_homes_flyer_1788666986566.jpg";

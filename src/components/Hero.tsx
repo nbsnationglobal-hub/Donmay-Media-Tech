@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import founderAtWork from "../assets/images/Founder.jpg";
-import jubileeFlyer from "../assets/images/jubilee_50th_flyer_1788666936232.jpg";
+import jubileeFlyer from "../assets/images/jubilee_50th_flyer_1788666936232.png";
 import moniepointScreenshot from "../assets/images/moniepoint_mockup_1788734262925.jpg";
 import brightsolarFlyer from "../assets/images/brightsolar_flyer_1788666962712.jpg";
 
