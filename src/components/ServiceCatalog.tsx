@@ -4,12 +4,13 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Sliders, Sparkles, Clock, Coins, ChevronRight, CheckCircle, 
   Check, Lock, Cpu, ArrowRight, X, Shield, Terminal, RefreshCw, Trash2,
-  FileVideo, FileImage, Upload, HelpCircle, HardDrive, ShoppingBag, Layers, Maximize2
+  FileVideo, FileImage, Upload, HelpCircle, HardDrive, ShoppingBag, Layers, Maximize2,
+  Music, Volume2
 } from "lucide-react";
 import OnboardingTerminal from "./OnboardingTerminal";
 
@@ -34,23 +35,35 @@ interface ActiveNode {
   date: string;
 }
 
+type ServiceCategory = 
+  | "targeted_ads" 
+  | "social_media" 
+  | "video_commercials" 
+  | "cartoon_animation" 
+  | "video_editing" 
+  | "graphic_design" 
+  | "custom_music"
+  | "software_dev" 
+  | "website_building";
+
 export default function ServiceCatalog() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get("category");
-  const validCategories = [
+  const validCategories: ServiceCategory[] = [
     "targeted_ads", "social_media", "video_commercials", 
     "cartoon_animation", "video_editing", "graphic_design", 
-    "software_dev", "website_building"
+    "custom_music", "software_dev", "website_building"
   ];
-  const initialCategory = validCategories.includes(categoryParam || "") 
-    ? (categoryParam as "targeted_ads" | "social_media" | "video_commercials" | "cartoon_animation" | "video_editing" | "graphic_design" | "software_dev" | "website_building") 
+  const initialCategory: ServiceCategory = validCategories.includes(categoryParam as ServiceCategory) 
+    ? (categoryParam as ServiceCategory) 
     : "targeted_ads";
 
-  const [activeTab, setActiveTab] = useState<"targeted_ads" | "social_media" | "video_commercials" | "cartoon_animation" | "video_editing" | "graphic_design" | "software_dev" | "website_building">(initialCategory);
+  const [activeTab, setActiveTab] = useState<ServiceCategory>(initialCategory);
 
   useEffect(() => {
-    if (categoryParam && validCategories.includes(categoryParam)) {
-      setActiveTab(categoryParam as any);
+    if (categoryParam && validCategories.includes(categoryParam as ServiceCategory)) {
+      setActiveTab(categoryParam as ServiceCategory);
     }
   }, [categoryParam]);
   const [checkoutSession, setCheckoutSession] = useState<CheckoutSession | null>(null);
@@ -220,12 +233,13 @@ export default function ServiceCatalog() {
               { id: "cartoon_animation", name: "Cartoon Animation" },
               { id: "video_editing", name: "Video Editing" },
               { id: "graphic_design", name: "Graphic Design" },
+              { id: "custom_music", name: "Custom Music" },
               { id: "software_dev", name: "Software & App Dev" },
               { id: "website_building", name: "Website Building" }
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as ServiceCategory)}
                 className={`px-5 py-3 rounded border font-mono text-[10.5px] uppercase tracking-[0.15em] transition-all duration-350 cursor-pointer ${activeTab === tab.id ? "border-[#00F0FF] bg-[#00F0FF]/10 text-white font-bold shadow-[0_0_15px_rgba(0,240,255,0.15)]" : "border-[#1C64F2]/20 text-[#A0AEC0] bg-[#080B1C]/40 hover:border-[#1C64F2]/60 hover:text-white"}`}
               >
                 {tab.name}
@@ -1139,6 +1153,256 @@ export default function ServiceCatalog() {
                             </span>
                           </div>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* CUSTOM MUSIC TAB */}
+              {activeTab === "custom_music" && (
+                <motion.div
+                  key="custom-music-pane"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  className="space-y-12"
+                >
+                  <div className="text-center max-w-3xl mx-auto">
+                    <p className="font-sans text-[#A0AEC0] text-sm leading-relaxed uppercase tracking-wider">
+                      Custom music production, singles, EPs, and albums tailored to your vision — complete with vocals, high-quality audio files, and full commercial usage rights.
+                    </p>
+                    <div className="mt-4 inline-flex items-center gap-2 bg-[#00F0FF]/5 border border-[#00F0FF]/25 px-4 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-widest text-[#00F0FF]">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>CUSTOM MUSIC // PRODUCTION TIERS</span>
+                    </div>
+                  </div>
+
+                  {/* 3-Card Pricing Layout */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* Card 1 - Single Track */}
+                    <div className="p-6 rounded-xl border border-[#1C64F2]/30 hover:border-[#00F0FF]/60 bg-[#1C64F2]/5 flex flex-col justify-between text-left group hover:shadow-[0_0_20px_rgba(0,240,255,0.06)] transition-all relative overflow-hidden">
+                      <div>
+                        {/* Category Label */}
+                        <span className="font-mono text-[8px] font-extrabold tracking-widest uppercase block mb-3 text-[#00F0FF]">
+                          CUSTOM MUSIC // PRODUCTION
+                        </span>
+
+                        {/* App icon block */}
+                        <div className="relative w-full h-24 bg-black/40 border border-white/5 rounded-lg flex items-center justify-center mb-5 overflow-hidden">
+                          <Music className="w-8 h-8 text-[#00F0FF] group-hover:scale-110 transition-transform" />
+                        </div>
+
+                        <h3 className="font-display font-black text-lg text-white uppercase tracking-wider mb-1">
+                          Single Track
+                        </h3>
+                        <span className="font-mono text-neutral-400 text-[9.5px] tracking-wide block mb-3 uppercase">
+                          Single Custom Song
+                        </span>
+                        <p className="font-sans text-xs text-neutral-400 leading-relaxed mb-6">
+                          One full custom song in your style, with vocals — for personal releases, gospel singles, or content.
+                        </p>
+
+                        {/* Features list */}
+                        <div className="border-t border-white/5 pt-4 mb-6">
+                          <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest block mb-2 font-bold">
+                            DELIVERABLES:
+                          </span>
+                          <ul className="flex flex-col gap-2 font-sans text-[10.5px] text-neutral-300">
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span>One full custom song, with vocals</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span>High-quality WAV &amp; MP3 files</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span className="text-[#00F0FF] font-semibold">Full commercial usage rights</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span>Up to 2 rounds of revisions</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Pricing and Action */}
+                      <div className="border-t border-white/10 pt-4 mt-auto">
+                        <div className="flex justify-between items-baseline mb-4">
+                          <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-wider font-bold">CONTRACT VALUE:</span>
+                          <span className="font-mono text-base font-black text-[#00F0FF]">₦50,000 <span className="text-xs font-normal text-[#A0AEC0]">(~$38 USD)</span></span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenCheckout("Single Track", "Custom Music", "₦50,000 (~$38 USD)", "Single Track")}
+                          className="w-full py-3 rounded font-mono text-[10.5px] font-black uppercase tracking-widest transition-all cursor-pointer border border-[#1C64F2]/40 bg-[#080B1C] hover:bg-[#00F0FF] hover:border-[#00F0FF] text-white hover:text-black mb-2 flex items-center justify-center gap-2"
+                        >
+                          <span>Select Single Track // Deploy</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => navigate("/sound-lab")}
+                          className="w-full py-2 rounded font-mono text-[9px] uppercase tracking-widest text-[#A0AEC0] hover:text-white bg-black/40 border border-white/5 hover:border-[#00F0FF]/30 flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <span>Customize in Sound Lab</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card 2 - EP (4 Songs) */}
+                    <div className="p-6 rounded-xl border border-[#8B5CF6]/35 hover:border-[#8B5CF6] bg-[#8B5CF6]/5 flex flex-col justify-between text-left group hover:shadow-[0_0_20px_rgba(139,92,246,0.06)] transition-all relative overflow-hidden">
+                      <div>
+                        {/* Category Label */}
+                        <span className="font-mono text-[8px] font-extrabold tracking-widest uppercase block mb-3 text-[#8B5CF6]">
+                          CUSTOM MUSIC // PRODUCTION
+                        </span>
+
+                        {/* App icon block */}
+                        <div className="relative w-full h-24 bg-black/40 border border-white/5 rounded-lg flex items-center justify-center mb-5 overflow-hidden">
+                          <Sliders className="w-8 h-8 text-[#8B5CF6] group-hover:scale-110 transition-transform" />
+                        </div>
+
+                        <h3 className="font-display font-black text-lg text-white uppercase tracking-wider mb-1">
+                          EP (4 Songs)
+                        </h3>
+                        <span className="font-mono text-neutral-400 text-[9.5px] tracking-wide block mb-3 uppercase">
+                          Short Project (4 Songs)
+                        </span>
+                        <p className="font-sans text-xs text-neutral-400 leading-relaxed mb-6">
+                          Four full custom songs matching one style and theme — built as a complete short project.
+                        </p>
+
+                        {/* Features list */}
+                        <div className="border-t border-white/5 pt-4 mb-6">
+                          <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest block mb-2 font-bold">
+                            DELIVERABLES:
+                          </span>
+                          <ul className="flex flex-col gap-2 font-sans text-[10.5px] text-neutral-300">
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span>4 full custom songs, with vocals</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span>High-quality WAV &amp; MP3 files for each track</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span className="text-[#8B5CF6] font-semibold">Full commercial usage rights</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span>Up to 3 rounds of revisions per song</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Pricing and Action */}
+                      <div className="border-t border-white/10 pt-4 mt-auto">
+                        <div className="flex justify-between items-baseline mb-4">
+                          <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-wider font-bold">CONTRACT VALUE:</span>
+                          <span className="font-mono text-base font-black text-[#8B5CF6]">₦180,000 <span className="text-xs font-normal text-[#A0AEC0]">(~$135 USD)</span></span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenCheckout("EP (4 Songs)", "Custom Music", "₦180,000 (~$135 USD)", "EP (4 Songs)")}
+                          className="w-full py-3 rounded font-mono text-[10.5px] font-black uppercase tracking-widest transition-all cursor-pointer border border-[#8B5CF6]/40 bg-[#080B1C] hover:bg-[#8B5CF6] hover:border-[#8B5CF6] text-white hover:text-black mb-2 flex items-center justify-center gap-2"
+                        >
+                          <span>Select EP (4 Songs) // Deploy</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => navigate("/sound-lab")}
+                          className="w-full py-2 rounded font-mono text-[9px] uppercase tracking-widest text-[#A0AEC0] hover:text-white bg-black/40 border border-white/5 hover:border-[#8B5CF6]/30 flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <span>Customize in Sound Lab</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card 3 - Album (10 Songs) */}
+                    <div className="p-6 rounded-xl border border-amber-500/25 hover:border-amber-400 bg-amber-500/5 flex flex-col justify-between text-left group hover:shadow-[0_0_20px_rgba(245,158,11,0.06)] transition-all relative overflow-hidden">
+                      <div className="absolute right-0 top-0 bg-amber-500 text-black font-mono text-[7px] font-black px-2 py-0.5 uppercase tracking-widest rounded-bl">
+                        COMPLETE BODY OF WORK
+                      </div>
+
+                      <div>
+                        {/* Category Label */}
+                        <span className="font-mono text-[8px] font-extrabold tracking-widest uppercase block mb-3 text-amber-400">
+                          CUSTOM MUSIC // PRODUCTION
+                        </span>
+
+                        {/* App icon block */}
+                        <div className="relative w-full h-24 bg-black/40 border border-white/5 rounded-lg flex items-center justify-center mb-5 overflow-hidden">
+                          <Volume2 className="w-8 h-8 text-amber-400 group-hover:scale-110 transition-transform" />
+                        </div>
+
+                        <h3 className="font-display font-black text-lg text-white uppercase tracking-wider mb-1">
+                          Album (10 Songs)
+                        </h3>
+                        <span className="font-mono text-neutral-400 text-[9.5px] tracking-wide block mb-3 uppercase">
+                          Complete Body of Work
+                        </span>
+                        <p className="font-sans text-xs text-neutral-400 leading-relaxed mb-6">
+                          Ten full custom songs built around one cohesive theme — a complete body of work.
+                        </p>
+
+                        {/* Features list */}
+                        <div className="border-t border-white/5 pt-4 mb-6">
+                          <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest block mb-2 font-bold">
+                            DELIVERABLES:
+                          </span>
+                          <ul className="flex flex-col gap-2 font-sans text-[10.5px] text-neutral-300">
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span>10 full custom songs, with vocals</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span>High-quality WAV &amp; MP3 files for each track</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span className="text-amber-400 font-semibold">Full commercial usage rights</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span>Priority turnaround and more revision rounds included</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Pricing and Action */}
+                      <div className="border-t border-white/10 pt-4 mt-auto">
+                        <div className="flex justify-between items-baseline mb-4">
+                          <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-wider font-bold">CONTRACT VALUE:</span>
+                          <span className="font-mono text-base font-black text-amber-400">₦400,000 <span className="text-xs font-normal text-[#A0AEC0]">(~$300 USD)</span></span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenCheckout("Album (10 Songs)", "Custom Music", "₦400,000 (~$300 USD)", "Album (10 Songs)")}
+                          className="w-full py-3 rounded font-mono text-[10.5px] font-black uppercase tracking-widest transition-all cursor-pointer border border-amber-500 bg-amber-500 hover:bg-amber-400 hover:border-amber-400 text-black shadow-[0_0_15px_rgba(245,158,11,0.2)] mb-2 flex items-center justify-center gap-2"
+                        >
+                          <span>Select Album (10 Songs) // Deploy</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => navigate("/sound-lab")}
+                          className="w-full py-2 rounded font-mono text-[9px] uppercase tracking-widest text-[#A0AEC0] hover:text-white bg-black/40 border border-white/5 hover:border-amber-400/30 flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <span>Customize in Sound Lab</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
                       </div>
                     </div>
                   </div>

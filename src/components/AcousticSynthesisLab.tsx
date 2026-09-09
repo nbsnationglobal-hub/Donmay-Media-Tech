@@ -550,18 +550,16 @@ TIMESTAMP:          ${new Date().toISOString()}
 
   const packages = [
     {
-      title: "Core Soundtrack Node",
-      category: "Acoustic Synthesis",
-      price: "$600 USD",
-      tier: "Entry-Level Custom Soundtrack",
-      description: "Custom atmospheric soundtracks designed for video intros, podcast theme packages, or brand reels.",
+      title: "Single Track",
+      category: "Custom Music",
+      price: "₦50,000 (~$38 USD)",
+      tier: "Single Custom Song",
+      description: "One full custom song in your style, with vocals — for personal releases, gospel singles, or content.",
       features: [
-        "1 fully customized acoustic composition",
-        "Up to 2 minutes of duration",
-        "Deeply personalized thematic matching",
-        "100% permanent commercial rights signed",
-        "High-definition WAV & MP3 master deliverables",
-        "Up to 2 structural mix revisions"
+        "One full custom song, with vocals",
+        "High-quality WAV & MP3 files",
+        "Full commercial usage rights",
+        "Up to 2 rounds of revisions"
       ],
       icon: Music,
       color: "border-[#1C64F2]/30 hover:border-[#00F0FF]/60",
@@ -569,19 +567,16 @@ TIMESTAMP:          ${new Date().toISOString()}
       bg: "bg-[#1C64F2]/5"
     },
     {
-      title: "Cinematic Strategy Tier",
-      category: "Acoustic Synthesis",
-      price: "$1,500 USD",
-      tier: "Complex Corporate & Media Scoring",
-      description: "Advanced cinematic scoring calibrated perfectly for trailers, promotional feature films, and commercial campaigns.",
+      title: "EP (4 Songs)",
+      category: "Custom Music",
+      price: "₦180,000 (~$135 USD)",
+      tier: "Short Project (4 Songs)",
+      description: "Four full custom songs matching one style and theme — built as a complete short project.",
       features: [
-        "Complete multi-theme cinematic arrangement",
-        "Up to 6 minutes of highly layered runtime",
-        "Perfect synchronization alignment guides",
-        "Advanced artificial intelligence sound stacking",
-        "100% permanent commercial rights signed",
-        "Full uncompressed stems delivery",
-        "Priority mix adjustments (up to 5 versions)"
+        "4 full custom songs, with vocals",
+        "High-quality WAV & MP3 files for each track",
+        "Full commercial usage rights",
+        "Up to 3 rounds of revisions per song"
       ],
       icon: Sliders,
       color: "border-[#8B5CF6]/35 hover:border-[#8B5CF6]",
@@ -589,25 +584,22 @@ TIMESTAMP:          ${new Date().toISOString()}
       bg: "bg-[#8B5CF6]/5"
     },
     {
-      title: "Global Master Composition",
-      category: "Acoustic Synthesis",
-      price: "$3,500 USD",
-      tier: "Elite Orchestral-Electronic Masterpiece",
-      description: "Unrestricted audio score design for high-end cinematic titles, monumental private celebrations, or global video game landscapes.",
+      title: "Album (10 Songs)",
+      category: "Custom Music",
+      price: "₦400,000 (~$300 USD)",
+      tier: "Complete Body of Work",
+      description: "Ten full custom songs built around one cohesive theme — a complete body of work.",
       features: [
-        "Epic custom orchestral-electronic composition",
-        "Unrestricted duration limits to match screenplay",
-        "Multi-vocal or solo live instrumentation overlays",
-        "Premium cinema stem mastering (Dolby ready)",
-        "100% permanent commercial rights package",
-        "Active 24/7 Slack production lead updates",
-        "Unlimited revisions till signature sign-off"
+        "10 full custom songs, with vocals",
+        "High-quality WAV & MP3 files for each track",
+        "Full commercial usage rights",
+        "Priority turnaround and more revision rounds included"
       ],
       icon: Volume2,
       color: "border-amber-500/25 hover:border-amber-400",
       accent: "text-amber-400",
       bg: "bg-amber-500/5",
-      badge: "ELITE SUPREME VALUE"
+      badge: "COMPLETE BODY OF WORK"
     }
   ];
 
@@ -1478,9 +1470,9 @@ TIMESTAMP:          ${new Date().toISOString()}
             {/* PACKAGE TIERS MATRICES */}
             <div className="mb-20 text-center">
               <div className="mb-12">
-                <span className="font-mono text-amber-400 text-xs tracking-widest font-black block uppercase mb-2">PROPRIETARY PACKAGES // TIER ARCHITECTURE</span>
+                <span className="font-mono text-[#00F0FF] text-xs tracking-widest font-black block uppercase mb-2">CUSTOM MUSIC PACKAGES // PRODUCTION TIERS</span>
                 <h2 className="font-display font-black text-2xl md:text-4xl tracking-widest uppercase">
-                  SELECT SOUNDTRACK DEPLOYMENT LEVEL
+                  SELECT YOUR MUSIC PACKAGE
                 </h2>
               </div>
 
@@ -1502,7 +1494,7 @@ TIMESTAMP:          ${new Date().toISOString()}
                       <div>
                         {/* Category Label */}
                         <span className={`font-mono text-[8px] font-extrabold tracking-widest uppercase block mb-3 ${pkg.accent}`}>
-                          CORE // {pkg.category.toUpperCase()}
+                          CUSTOM MUSIC // PRODUCTION
                         </span>
 
                         {/* App icon block */}
@@ -1513,19 +1505,16 @@ TIMESTAMP:          ${new Date().toISOString()}
                         <h3 className="font-display font-black text-lg text-white uppercase tracking-wider mb-1">
                           {pkg.title}
                         </h3>
-                        <span className="font-mono text-neutral-400 text-[9.5px] tracking-wide block mb-3 uppercase">
-                          {pkg.tier}
-                        </span>
-                        <p className="font-sans text-xs text-neutral-400 uppercase tracking-wider leading-relaxed mb-6">
+                        <p className="font-sans text-xs text-neutral-400 leading-relaxed mb-6">
                           {pkg.description}
                         </p>
 
                         {/* Features list */}
                         <div className="border-t border-white/5 pt-4 mb-6">
                           <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest block mb-2 font-bold">
-                            FULFILLMENT DELIVERABLES:
+                            DELIVERABLES:
                           </span>
-                          <ul className="flex flex-col gap-2 font-sans text-[10.5px] text-neutral-300 uppercase tracking-wider">
+                          <ul className="flex flex-col gap-2 font-sans text-[10.5px] text-neutral-300">
                             {pkg.features.map((feat, fIdx) => (
                               <li key={fIdx} className="flex items-start gap-2">
                                 <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
@@ -1539,7 +1528,7 @@ TIMESTAMP:          ${new Date().toISOString()}
                       {/* Pricing and Action */}
                       <div className="border-t border-white/10 pt-4 mt-auto">
                         <div className="flex justify-between items-baseline mb-4">
-                          <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-wider font-bold">CONTRACT VALUE:</span>
+                          <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-wider font-bold">PACKAGE PRICE:</span>
                           <span className={`font-mono text-base font-black ${pkg.accent}`}>{pkg.price}</span>
                         </div>
 
@@ -1548,15 +1537,15 @@ TIMESTAMP:          ${new Date().toISOString()}
                             title: pkg.title,
                             category: pkg.category,
                             price: pkg.price,
-                            tier: pkg.tier
+                            tier: pkg.title
                           })}
                           className={`w-full py-3 rounded font-mono text-[10.5px] font-black uppercase tracking-widest transition-all cursor-pointer border hover:border-white ${
                             index === 2 
-                              ? "bg-amber-500 border-amber-500 hover:bg-amber-400 hover:border-amber-400 text-black text-xs font-black shadow-[0_0_15px_rgba(245,158,11,0.2)] animate-pulse" 
+                              ? "bg-amber-500 border-amber-500 hover:bg-amber-400 hover:border-amber-400 text-black text-xs font-black shadow-[0_0_15px_rgba(245,158,11,0.2)]" 
                               : "bg-black/40 border-white/10 text-white hover:bg-white hover:text-black"
                           }`}
                         >
-                          ENGAGE THE SYNTHESIS CORE
+                          SELECT {pkg.title.toUpperCase()}
                         </button>
                       </div>
                     </div>
